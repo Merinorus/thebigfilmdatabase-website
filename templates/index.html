@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Film List</title>
+</head>
+<body>
+    <h1>Film List</h1>
+    <form action="/search" method="get">
+        <input maxlength="255" type="text" name="name" placeholder="Model Name">
+        <input maxlength="255" type="text" name="manufacturer" placeholder="Manufacturer">
+        <input maxlength="4" type="text" name="dx_extract" placeholder="DX Code Extract (4 digits)">
+        <input maxlength="6" type="text" name="dx_full" placeholder="DX Code Full Number (6 digits)">
+        <button type="submit">Search</button>
+    </form>
+    <p>Random film for search engines: <a href="/film/{{ film['url_name'] }}">{{ film['name'] }}</a></p>
+    <p>{{ total_count }} films in database.</p>
+</body>
+</html>

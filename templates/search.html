@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Results</title>
+</head>
+<body>
+    <h1>Search Results</h1>
+    <a href="/">Back</a>
+
+        {% for film in films %}
+        <ul>
+    <li><a href="/film/{{ film['url_name'] }}">{{ film['name'] }}</a></li>
+    {% if film['dx_extract'] %} <li><strong>DX extract :</strong> {{ film['dx_extract'] }}</li> {% endif %}
+    {% if film['dx_full'] %} <li><strong>DX Full code :</strong> {{ film['dx_full'] }}</li> {% endif %}
+    <li><strong>Original Film or information :</strong> {{ film['or_film_or_information'] }}</li>
+    <li><strong>Manufacturer :</strong> {{ film['manufacturer'] }}</li>
+    <li><strong>Country :</strong> {{ film['country'] }}</li>
+    <li><strong>Beginning year :</strong> {{ film['begin_year'] }}</li>
+    <li><strong>End year :</strong> {{ film['end_year'] }}</li>
+    <li><strong>Distributor :</strong> {{ film['distributor'] }}</li>
+    <li><strong>Availability :</strong> {{ film['availability_label'] }}</li>
+    <li><strong>Picture :</strong> {{ film['picture'] }}</li>
+        </ul>
+        {% endfor %}
+    {% if not films %}
+        <p>No results found</p>
+    {% endif %}
+    {% if film_type %}
+        <p>Manufacturer and film type (calculated from DX code, not very accurate...): {{ film_type }}</p>
+    {% endif %}
+</body>
+</html>

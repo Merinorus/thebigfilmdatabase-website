@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ film['name'] }}</title>
+</head>
+<body>
+    <h1>{{ film['name'] }}</h1>
+    {% if film['dx_full'] %} <p><strong>DX code :</strong> {{ film['dx_full'] }}</p> {% endif %}
+    <p><strong>Original Film or information :</strong> {{ film['or_film_or_information'] }}</p>
+    <p><strong>Manufacturer :</strong> {{ film['manufacturer'] }}</p>
+    <p><strong>Country :</strong> {{ film['country'] }}</p>
+    <p><strong>Beginning year :</strong> {{ film['begin_year'] }}</p>
+    <p><strong>End year :</strong> {{ film['end_year'] }}</p>
+    <p><strong>Distributor :</strong> {{ film['distributor'] }}</p>
+    <p><strong>Availability :</strong> {{ film['availability_label'] }}</p>
+    <p><strong>Picture :</strong> {{ film['picture'] }}</p>
+    <a href="/">Back to home</a>
+</body>
+</html>
