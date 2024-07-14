@@ -1,0 +1,5 @@
+# Application python requirements
+
+fastapi~=0.111.1
+pydantic-settings~=2.3.4
+uvicorn~=0.30.1
