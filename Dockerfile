@@ -77,6 +77,7 @@ COPY --from=installstage /usr/src/data/film_database.db /usr/src/data/film_datab
 
 # Copy app files
 COPY app /usr/src/app
+COPY static /usr/src/static
 COPY templates /usr/src/templates
 RUN useradd -u 9999 app
 RUN chown -R app:app /usr/src

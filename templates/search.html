@@ -1,33 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Search Results</title>
-</head>
-<body>
-    <h1>Search Results</h1>
-    <a href="/">Back</a>
+    <head>
+        <meta charset="UTF-8">
+        <title>Search Results</title>
+        <link rel="stylesheet"
+              type="text/css"
+              href="{{ url_for('static', path='css/film.css') }}">
+    </head>
+    <body>
+        <div class="wrapper">
+            <header class="header">
+                <h1>The Big Film Database !</h1>
+                <p style="margin-left:85px;">
+                    <small>The biggest photographic film database in the world ! Search by name, code or DX number.
+                        <br>
+                    Find when a film is discontinued, who made it, who rebrand it ! Have fun !</small>
+                </p>
+            </header>
+            <h4>Found {{ count }} results{% if too_many_results %} (cropped){% endif %}</h4>
 
-        {% for film in films %}
-        <ul>
-    <li><a href="/film/{{ film['url_name'] }}">{{ film['name'] }}</a></li>
-    {% if film['dx_extract'] %} <li><strong>DX extract :</strong> {{ film['dx_extract'] }}</li> {% endif %}
-    {% if film['dx_full'] %} <li><strong>DX Full code :</strong> {{ film['dx_full'] }}</li> {% endif %}
-    <li><strong>Original Film or information :</strong> {{ film['or_film_or_information'] }}</li>
-    <li><strong>Manufacturer :</strong> {{ film['manufacturer'] }}</li>
-    <li><strong>Country :</strong> {{ film['country'] }}</li>
-    <li><strong>Beginning year :</strong> {{ film['begin_year'] }}</li>
-    <li><strong>End year :</strong> {{ film['end_year'] }}</li>
-    <li><strong>Distributor :</strong> {{ film['distributor'] }}</li>
-    <li><strong>Availability :</strong> {{ film['availability_label'] }}</li>
-    <li><strong>Picture :</strong> {{ film['picture'] }}</li>
-        </ul>
-        {% endfor %}
-    {% if not films %}
-        <p>No results found</p>
-    {% endif %}
-    {% if film_type %}
-        <p>Manufacturer and film type (calculated from DX code, not very accurate...): {{ film_type }}</p>
-    {% endif %}
-</body>
-</html>
+            <a href='{{ url_for("index_page") }}'>Search for another film</a>
+            {% for film in films %}
+                <footer class="footer">
+                    {% if film['picture'] %}
+                        <img src="{{ film['picture'] }}"
+                             align="right"
+                             width="150"
+                             height="100"
+                             alt="{{ film['name'] }}" loading="lazy">
+                    {% else %}
+                        <img src="{{ url_for('static', path='images/no_picture.webp') }}"
+                             align="right"
+                             width="150"
+                             height="100"
+                             alt="no picture" loading="lazy">
+                    {% endif %}
+                    <strong><a href="{{ url_for('read_film', name=film['url_name']) }}">{{ film['name'] }}</a></strong>
+                    <br />
+                    <br />
+                    {% if film['og_film_or_information'] %}
+                        <strong>Information / Suspected emulsion:</strong> {{ film['og_film_or_information'] }}{% if film['reliability'] %}- certitude: <img src="{{ film['reliability_img'] }}" width="25" height="23" alt="certitude {{ film['reliability'] }}/4">{% endif %}
+                        <br />
+                    {% endif %}
+                    {% if film['dx_extract'] %}
+                        <strong>DX extract :</strong> <a href="{{ url_for("search") }}?dx_extract={{ film['dx_extract'] }}">{{ film['dx_extract'] }}</a>
+                        <br />
+                    {% endif %}
+                    {% if film['dx_full'] %}
+                        <strong>DX Full code :</strong> <a href="{{ url_for("search") }}?dx_full={{ film['dx_full'] }}">{{ film['dx_full'] }}</a>
+                        <br />
+                    {% endif %}
+                    {% if film['or_film_or_information'] %}
+                        <strong>Original Film or information :</strong> {{ film['or_film_or_information'] }}
+                        <br />
+                    {% endif %}
+                    {% if film['manufacturers'] %}
+                        <strong>Manufacturer :</strong> {% for manufacturer in film['manufacturers'] %}<a href="{{ url_for('search') }}?manufacturer={{ manufacturer }}">{{ manufacturer }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+                        <br />
+                    {% endif %}
+                    {% if film['country'] %}
+                        <strong>Origin :</strong> {{ film['country'] }}
+                        <br />
+                    {% endif %}
+                    {% if film['begin_year'] %}
+                        <strong>Beginning year :</strong> {{ film['begin_year'] }}
+                        <br />
+                    {% endif %}
+                    {% if film['end_year'] %}
+                        <strong>End year :</strong> {{ film['end_year'] }}
+                        <br />
+                    {% endif %}
+                    {% if film['distributor'] %}
+                        <strong>Distributor :</strong> {{ film['distributor'] }}
+                        <br />
+                    {% endif %}
+                    <strong>Availability :</strong> {{ film['availability_label'] | safe }}
+                    <br />
+                    <br />
+                </footer>
+            {% endfor %}
+            {% if not films %}<p>No results found</p>{% endif %}
+            {% if film_type %}
+                <p>Manufacturer and film type (calculated from DX code, not very accurate...): {{ film_type }}</p>
+            {% endif %}
+        </body>
+    </html>

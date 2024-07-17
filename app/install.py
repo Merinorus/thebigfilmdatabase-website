@@ -8,7 +8,7 @@ import pandas as pd
 from pydantic import TypeAdapter
 
 from app.config import settings
-from app.schemas import HTMLFilmInDB
+from app.schemas.film import HTMLFilmInDB
 from app.utils.url import generate_unique_url
 
 
