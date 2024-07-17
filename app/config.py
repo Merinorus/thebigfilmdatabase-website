@@ -1,6 +1,6 @@
 import os
 
-from pydantic import Field, HttpUrl
+from pydantic import Field, HttpUrl, NonNegativeFloat, NonNegativeInt
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.constants import PROJECT_DIR
@@ -21,6 +21,9 @@ class Settings(BaseSettings):
 
     # Location of the local database, created at application launch from the repo's data
     DB_SQLITE_FILEPATH: str = str(os.path.join(DATA_DIR, "film_database.db"))
+
+    RATE_LIMITER_MAX_REQUESTS: NonNegativeInt = Field(default=20)
+    RATE_LIMITER_TIME_WINDOW: NonNegativeFloat = Field(default=60)
 
     model_config = SettingsConfigDict(extra="ignore", env_file=".env", case_sensitive=True)
 
