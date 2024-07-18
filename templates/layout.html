@@ -14,17 +14,26 @@
         <div class="wrapper">
             <header class="header">
                 <h1>
-                    <a href={{ url_for("index_page") }}>The Big Film Database</a>
+                    <a href={{ url_for("index_page") }}>The Same Big Film Database - Work in Progress</a>
                 </h1>
             </header>
+            <footer class="footer">
+                <p>
+                    IMPORTANT! This is a rewrite of this great website: <a target="_blank" href="https://industrieplus.net/dxdatabase">The Big Film Database</a>, which is still available (as of July, 2024).
+                    <br>
+                    This is a work in progress. <a target="_blank"
+    href="https://35mm-compact.com/forum/viewtopic.php?p=1060412#p1060412">The evolution is under discussion on the 35mm-compact.com forum (in French)</a>.
+                    <br>
+                    For the past few years, the database has only been updated sporadically. To prevent this work from disappearing, the original author has decided to place it under a <a target="_blank"
+    href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons BY-SA license</a> on <a target="_blank"
+    href="https://github.com/dxdatabase/Open-source-film-database">GitHub</a> (with the exception of the images, which remain the exclusive property of their creators, used under "fair use").
+                </p>
+            </footer>
             {% block content %}{% endblock %}
             <footer class="footer">
                 {% block footer %}{% endblock %}
                 <p>
-                    IMPORTANT: For the past few years, the database has only been updated sporadically. To prevent this work from disappearing, I have decided to place it under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons BY-SA license</a> on <a href="https://github.com/dxdatabase/Open-source-film-database">GitHub</a> (with the exception of the images, which remain the exclusive property of their creators, used under "fair use").
-                </p>
-                <p>
-                    The Big Film Database is in beta version with no warranty. If you don't understand this page, <a href="{{ url_for("help_page") }}">read the help!</a>
+                    <a href="{{ url_for("index_page") }}">The Big Film Database</a> is in beta version with no warranty. If you don't understand this page, <a href="{{ url_for("help_page") }}">read the help!</a>
                 </p>
             </footer>
         </div>
