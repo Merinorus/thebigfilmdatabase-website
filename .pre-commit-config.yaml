@@ -12,7 +12,7 @@ repos:
     hooks:
       - id: ruff
         name: Code linter (Ruff)
-        args: [ --fix ]
+        args: [--fix]
       - id: ruff-format
         name: Code formatter (Ruff)
 
@@ -25,3 +25,11 @@ repos:
         pass_filenames: false
         # stages: [push]  # Uncomment to temporarily accelerate local commits
 
+  - repo: https://github.com/djlint/djlint
+    rev: v1.34.1
+    hooks:
+      - id: djlint
+        name: djLint
+        entry: djlint --reformat
+        language: python
+        files: \.(html|j2)$

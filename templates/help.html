@@ -1,106 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>The Big Film Database for analog photographers - Search by DX number, code or name</title>
-        <link rel="stylesheet"
-              type="text/css"
-              href="{{ url_for('static', path='css/film.css') }}">
-    </head>
-    <body>
-        <div class="wrapper">
-            <header class="header">
-                <h1>The Big Film Database !</h1>
-                <p style="margin-left:85px;">
-                    <small>The biggest photographic film database in the world ! Search by name, code or DX number.
-                        <br>
-                    Find when a film is discontinued, who made it, who rebrand it ! Have fun !</small>
-                </p>
-            </header>
-            <footer class="footer">
-                <h2>What's the point?</h2>
-                <p>
-                    Film manufacturing is extremly difficult. Less than <a href="https://imgur.com/uJ5p6ZI" target="new">20 company can do it on earth</a>. But if you go to a shop, you can find tens of differents films... It's because rebranding film is a common practice. It's not new, manufacturers had always completed their product line with the emulsions of others. Supermarket and camera company also sell rebranded film in her name. And, since the decline of film, new firms have made their business, buying prestigious names. Agfaphoto, Rollei, Bergger does not manufacture any emulsions, they buy existing film or sometimes order special batch. My database try to help consumers to know what they realy buy. And now, it also help old film lovers to find informations.
-                </p>
-                <h2>The Big Film Database?</h2>
-                <p>
-                    I first compiled this database from the I3A (International Imaging Industry Association) listing of DX number from 2008. I also added films from my own collection, and informations found on the internet. Then, I added old films with no DX code. And now, i'm still adding new emulsions sometimes, and I try to add a picture if I can find one... If you can't find an emulsion, or have any information or picture about a mysterious film, you can sent me informations by email : @ dawar404 at gmail  ;)
-                </p>
-                <h2>DX  number?</h2>
-                <p>
-                    <i>Next to the film exit lip is an Interleaved 2 of 5 barcode and a printed number. The 6 digits represent the I3A assigned DX number (middle 4 digits), the number of exposures (last digit) and a proprietary manufacturer's code (first digit). The DX number identifies the manufacturer, film type, and by inference, the necessary developing process type. This is used by automatic photo-finishing machines to correctly process the exposed film</i> (Wikipedia).
-                </p>
-                <h2>Why it dind't find &lsaquo;insert your film here&rsaquo;?</h2>
-                <p>
-                    Make sure you search with one or two word only. The database is about films, it does not include plates, miniature format (16mm or less), dry process (Diazo) and digital printing. It include photographic films, motion picture films, technical films, x-ray films, and any flexible light sensitive materials. If your film is still missing, drop me a mail : dawar404 at gmail !
-                    <h2>Where it come from?</h2>
-                    <p>
-                        I used a lot of differents sources for creating the database. Here are the main ones :
-                        <ul>
-                            <li>
-                                The I3A DX codes catalog from 2008 : <a href="https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association">https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association</a>
-                            </li>
-                            <li>
-                                The 2011-2014's DX codes from Society for Imaging Science & Technology, the home site for international ISO photography standards. Thanks to Ann and his team! : <a href="http://bit.ly/PhotographyStandards">https://www.imaging.org ~ http://bit.ly/PhotographyStandards</a>
-                            </li>
-                            <li>
-                                Greg from <a href="https://www.filmrescue.com/">Film Rescue International</a>, who sent me information and introduced me to specialists like Robert Shanebrook (author of the book "<a href="http://www.makingkodakfilm.com/">Making Kodak Film</a>").
-                            </li>
-                            <li>
-                                Kodak chronology of films : <a href="https://www.kodak.com/lk/en/motion/About/Chronology_Of_Film/default.htm">https://www.kodak.com/lk/en/motion/About/Chronology_Of_Film/default.htm </a>
-                            </li>
-                            <li>
-                                The great "Kodak Film Number to Film Type Cross Reference Table" by Tom Philo : <a href="http://www.taphilo.com/Photo/kodakfilmnumxref.shtml">http://www.taphilo.com/Photo/kodakfilmnumxref.shtml</a>
-                            </li>
-                            <li>
-                                Flickr's thread about DX numbers : <a href="https://www.flickr.com/groups/67377471@N00/discuss/72157634429783414/  ">https://www.flickr.com/groups/67377471@N00/discuss/72157634429783414/</a>
-                            </li>
-                            <li>
-                                Wikipedia list of photographic films : <a href="https://en.wikipedia.org/wiki/List_of_photographic_films ">https://en.wikipedia.org/wiki/List_of_photographic_films </a>
-                            </li>
-                            <li>
-                                Wikipedia list of discontinued photographic films : <a href="https://en.wikipedia.org/wiki/List_of_discontinued_photographic_films ">https://en.wikipedia.org/wiki/List_of_discontinued_photographic_films </a>
-                            </li>
-                            <li>
-                                The very well documented Photo Memorabilia : <a href="https://www.photomemorabilia.co.uk/index.html">https://www.photomemorabilia.co.uk/index.htm</a>
-                            </li>
-                            <li>
-                                The very nice "Timeline of Historical Film Colors": <a href="https://zauberklang.ch/filmcolors/timeline-of-historical-film-colors/">https://zauberklang.ch/filmcolors/timeline-of-historical-film-colors/</a>
-                            </li>
-                            <li>
-                                Emtus Kamera Nachschlagewerk: <a href="http://www.emtus.ch/kleinbildfilm-135---01-15.html">http://www.emtus.ch/kleinbildfilm-135---01-15.html</a>
-                            </li>
-                            <li>
-                                Szegecs Weblapja films tests: <a href="http://szegecs.de/index.html">http://szegecs.de/index.html</a>
-                            </li>
-                            <li>
-                                Neco's films, dry plates & photographic papers collection: <a href="http://neco.aki.gs/">http://neco.aki.gs/</a>
-                            </li>
-                            <li>
-                                The crazy Flat Film Archive: <a href="http://flatfilmarchive.com/">http://flatfilmarchive.com/</a>
-                            </li>
-                            <li>
-                                My friends from french forum 35mm-compact : <a href="http://35mm-compact.com/forum/viewtopic.php?f=22&t=43449 ">http://35mm-compact.com/forum/viewtopic.php?f=22&t=43449</a>
-                            </li>
-                            <li>
-                                Very nice people who contacted me by email, or answered my emails :) Bryan, Thomas from Kodak Alaris, Paul, Douglas, FujiFilm France team, David (the creator of DXsim), Erwin the film edges decryption specialist, Леонид who helped me on the soviet films, and all the others
-                            </li>
-                            <li>
-                                The <i>Journal of The Society of Photographic Science and Technology of Japan</i> archived at J-Stage : <a href="https://www.jstage.jst.go.jp/browse/photogrst/list/-char/en">https://www.jstage.jst.go.jp/browse/photogrst/list/-char/en</a>
-                            </li>
-                            <li>
-                                List of Equivalent Films from Darkroom Solutions : <a href="https://darkroom-solutions.com/notes">https://darkroom-solutions.com/notes</a>
-                            </li>
-                            <li>
-                                Archived newspapers, magazines and books from <a href="https://archive.org/">archive.org</a> and <a href="https://books.google.fr/">Google Books</a>
-                            </li>
-                            <li>Ebay, Yahoo Auctions, Rakuken...</li>
-                        </ul>
-                    </p>
-                    <p>
-                        <a href="{{ url_for('index_page') }}">Back</a>
-                    </p>
-                </footer>
-            </div>
-        </body>
-    </html>
+{% extends "layout.html" %}
+{% block title %}
+    Help
+{% endblock title %}
+{% block content %}
+    <footer class="footer">
+        <h2>What's the point?</h2>
+        <p>
+            Film manufacturing is extremly difficult. Less than <a href="https://imgur.com/uJ5p6ZI" target="new">20 company can do it on earth</a>. But if you go to a shop, you can find tens of differents films... It's because rebranding film is a common practice. It's not new, manufacturers had always completed their product line with the emulsions of others. Supermarket and camera company also sell rebranded film in her name. And, since the decline of film, new firms have made their business, buying prestigious names. Agfaphoto, Rollei, Bergger does not manufacture any emulsions, they buy existing film or sometimes order special batch. My database try to help consumers to know what they realy buy. And now, it also help old film lovers to find informations.
+        </p>
+        <h2>The Big Film Database?</h2>
+        <p>
+            I first compiled this database from the I3A (International Imaging Industry Association) listing of DX number from 2008. I also added films from my own collection, and informations found on the internet. Then, I added old films with no DX code. And now, i'm still adding new emulsions sometimes, and I try to add a picture if I can find one... If you can't find an emulsion, or have any information or picture about a mysterious film, you can sent me informations by email : @ dawar404 at gmail  ;)
+        </p>
+        <h2>DX  number?</h2>
+        <p>
+            <i>Next to the film exit lip is an Interleaved 2 of 5 barcode and a printed number. The 6 digits represent the I3A assigned DX number (middle 4 digits), the number of exposures (last digit) and a proprietary manufacturer's code (first digit). The DX number identifies the manufacturer, film type, and by inference, the necessary developing process type. This is used by automatic photo-finishing machines to correctly process the exposed film</i> (Wikipedia).
+        </p>
+        <h2>Why it dind't find &lsaquo;insert your film here&rsaquo;?</h2>
+        <p>
+            Make sure you search with one or two word only. The database is about films, it does not include plates, miniature format (16mm or less), dry process (Diazo) and digital printing. It include photographic films, motion picture films, technical films, x-ray films, and any flexible light sensitive materials. If your film is still missing, drop me a mail : dawar404 at gmail !
+            <h2>Where it come from?</h2>
+            <p>
+                I used a lot of differents sources for creating the database. Here are the main ones :
+                <ul>
+                    <li>
+                        The I3A DX codes catalog from 2008 : <a href="https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association">https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association</a>
+                    </li>
+                    <li>
+                        The 2011-2014's DX codes from Society for Imaging Science & Technology, the home site for international ISO photography standards. Thanks to Ann and his team! : <a href="http://bit.ly/PhotographyStandards">https://www.imaging.org ~ http://bit.ly/PhotographyStandards</a>
+                    </li>
+                    <li>
+                        Greg from <a href="https://www.filmrescue.com/">Film Rescue International</a>, who sent me information and introduced me to specialists like Robert Shanebrook (author of the book "<a href="http://www.makingkodakfilm.com/">Making Kodak Film</a>").
+                    </li>
+                    <li>
+                        Kodak chronology of films : <a href="https://www.kodak.com/lk/en/motion/About/Chronology_Of_Film/default.htm">https://www.kodak.com/lk/en/motion/About/Chronology_Of_Film/default.htm </a>
+                    </li>
+                    <li>
+                        The great "Kodak Film Number to Film Type Cross Reference Table" by Tom Philo : <a href="http://www.taphilo.com/Photo/kodakfilmnumxref.shtml">http://www.taphilo.com/Photo/kodakfilmnumxref.shtml</a>
+                    </li>
+                    <li>
+                        Flickr's thread about DX numbers : <a href="https://www.flickr.com/groups/67377471@N00/discuss/72157634429783414/  ">https://www.flickr.com/groups/67377471@N00/discuss/72157634429783414/</a>
+                    </li>
+                    <li>
+                        Wikipedia list of photographic films : <a href="https://en.wikipedia.org/wiki/List_of_photographic_films ">https://en.wikipedia.org/wiki/List_of_photographic_films </a>
+                    </li>
+                    <li>
+                        Wikipedia list of discontinued photographic films : <a href="https://en.wikipedia.org/wiki/List_of_discontinued_photographic_films ">https://en.wikipedia.org/wiki/List_of_discontinued_photographic_films </a>
+                    </li>
+                    <li>
+                        The very well documented Photo Memorabilia : <a href="https://www.photomemorabilia.co.uk/index.html">https://www.photomemorabilia.co.uk/index.htm</a>
+                    </li>
+                    <li>
+                        The very nice "Timeline of Historical Film Colors": <a href="https://zauberklang.ch/filmcolors/timeline-of-historical-film-colors/">https://zauberklang.ch/filmcolors/timeline-of-historical-film-colors/</a>
+                    </li>
+                    <li>
+                        Emtus Kamera Nachschlagewerk: <a href="http://www.emtus.ch/kleinbildfilm-135---01-15.html">http://www.emtus.ch/kleinbildfilm-135---01-15.html</a>
+                    </li>
+                    <li>
+                        Szegecs Weblapja films tests: <a href="http://szegecs.de/index.html">http://szegecs.de/index.html</a>
+                    </li>
+                    <li>
+                        Neco's films, dry plates & photographic papers collection: <a href="http://neco.aki.gs/">http://neco.aki.gs/</a>
+                    </li>
+                    <li>
+                        The crazy Flat Film Archive: <a href="http://flatfilmarchive.com/">http://flatfilmarchive.com/</a>
+                    </li>
+                    <li>
+                        My friends from french forum 35mm-compact : <a href="http://35mm-compact.com/forum/viewtopic.php?f=22&t=43449 ">http://35mm-compact.com/forum/viewtopic.php?f=22&t=43449</a>
+                    </li>
+                    <li>
+                        Very nice people who contacted me by email, or answered my emails :) Bryan, Thomas from Kodak Alaris, Paul, Douglas, FujiFilm France team, David (the creator of DXsim), Erwin the film edges decryption specialist, Леонид who helped me on the soviet films, and all the others
+                    </li>
+                    <li>
+                        The <i>Journal of The Society of Photographic Science and Technology of Japan</i> archived at J-Stage : <a href="https://www.jstage.jst.go.jp/browse/photogrst/list/-char/en">https://www.jstage.jst.go.jp/browse/photogrst/list/-char/en</a>
+                    </li>
+                    <li>
+                        List of Equivalent Films from Darkroom Solutions : <a href="https://darkroom-solutions.com/notes">https://darkroom-solutions.com/notes</a>
+                    </li>
+                    <li>
+                        Archived newspapers, magazines and books from <a href="https://archive.org/">archive.org</a> and <a href="https://books.google.fr/">Google Books</a>
+                    </li>
+                    <li>Ebay, Yahoo Auctions, Rakuken...</li>
+                </ul>
+            </p>
+            <p>
+                <a href="{{ url_for("index_page") }}">Back</a>
+            </p>
+        </footer>
+    {% endblock content %}

@@ -1,108 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>The Big Film Database for analog photographers - Search by DX number, code or name</title>
-        <link rel="stylesheet"
-              type="text/css"
-              href="{{ url_for('static', path='css/film.css') }}">
-    </head>
-    <body>
+{% extends "layout.html" %}
+{% block title %}
+    The biggest photographic film database in the world
+{% endblock title %}
+{% block content %}
+    <footer class="footer">
+        <p>
+            The biggest photographic film database in the world! Search by name, code or DX number.
+            <br>
+            Find when a film is discontinued, who made it, who rebrands it. Have fun!
+        </p>
+        <p>
+            The Big Film Database is in beta version with no warranty. If you don't understand this page, <a href="{{ url_for("help_page") }}">read the help!</a>
+        </p>
+    </footer>
+    <aside class="dxblock">
         <form action='{{ url_for("search") }}'
               method="get"
               name="search-film"
               id="search-film">
         </form>
-        <div class="wrapper">
-            <header class="header">
-                <h1>The Big Film Database !</h1>
-                <p style="margin-left:85px;">
-                    <small>The biggest photographic film database in the world ! Search by name, code or DX number.
-                        <br>
-                    Find when a film is discontinued, who made it, who rebrand it ! Have fun !</small>
-                </p>
-            </header>
-            <footer class="footer">
-                <p>
-                    IMPORTANT : For the past few years, the database has only been updated sporadically. To prevent this work from disappearing, I have decided to place it under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons BY-SA license</a> on <a href="https://github.com/dxdatabase/Open-source-film-database">GitHub</a> (with the exception of the images, which remain the exclusive property of their creators, used under "fair use").
-                </p>
-            </footer>
-            <aside class="dxblock">
-                <h3>
-                    Search by DX number
-                    <img src="{{ url_for('static', path='images/dx_code.webp') }}"
-                         alt="Canister with a Dx code"
-                         width="300"
-                         height="158"
-                         loading="lazy">
-                </h3>
-                <p>
-                    <br>
-                    Please enter the DX full number (6 digits):
-                    <br>
-                    <input minlength="1"
-                           maxlength="6"
-                           pattern="[0-9]+"
-                           type="text"
-                           name="dx_full"
-                           placeholder="DX full barcode (6 digits)"
-                           form="search-film">
-                    <button type="submit" form="search-film">Search</button>
-                    <br>
-                    You can also search by DX number parts 1 and 2:
-                    <br>
-                    <input minlength="1"
-                           maxlength="10"
-                           pattern="[0-9]+.+[0-9]+.*"
-                           type="text"
-                           name="dx_number"
-                           placeholder="DX number (eg: 115-10)"
-                           form="search-film">
-                    <button type="submit" form="search-film">Search</button>
-                </p>
-            </aside>
-            <article class="filmblock">
-                <h3>
-                    Search by name
-                    <img src="{{ url_for('static', path='images/films.webp') }}"
-                         alt="Funny films"
-                         width="300"
-                         height="158"
-                         loading="lazy">
-                </h3>
-                <p>
-                    <br>
-                    Please enter film name (eg: "kodak portra 160")
-                    <br>
-                    <input maxlength="255"
-                           type="text"
-                           name="name"
-                           placeholder="Model Name"
-                           form="search-film">
-                    <button type="submit" form="search-film">Search</button>
-                    <br />
-                    You can also search by manufacturer:
-                    <br />
-                    <input maxlength="255"
-                           type="text"
-                           name="manufacturer"
-                           placeholder="Manufacturer"
-                           form="search-film">
-                    <button type="submit" form="search-film">Search</button>
-                </p>
-            </article>
-            <footer class="footer">
-                <p>
-                    <small>{{ total_count }} films in database.
-                        <br>
-                    Random film for search engines : <a href="{{ url_for('read_film', name=film['url_name']) }}">{{ film['name'] }}</a></small>
-                </p>
-                <p>
-                <small>The Big Film Database is in beta version with no warranty. If you don't understand this page, <a href="{{ url_for("help_page") }}">read the help!!</a>
-                <br>
-            </small>
+        <h3>
+            Search by DX number
+            <img src="{{ url_for('static', path='images/dx_code.webp') }}"
+                 alt="Canister with a Dx code"
+                 width="300"
+                 height="158"
+                 loading="lazy">
+        </h3>
+        <p>
+            <br>
+            Please enter the DX full number (6 digits):
+            <br>
+            <input minlength="1"
+                   maxlength="6"
+                   pattern="[0-9]+"
+                   type="text"
+                   name="dx_full"
+                   placeholder="DX full barcode (6 digits)"
+                   form="search-film">
+            <button type="submit" form="search-film">Search</button>
+            <br>
+            <br>
+            You can also search by DX number parts 1 and 2:
+            <br>
+            <input minlength="1"
+                   maxlength="10"
+                   pattern="[0-9]+.+[0-9]+.*"
+                   type="text"
+                   name="dx_number"
+                   placeholder="DX number (eg: 115-10)"
+                   form="search-film">
+            <button type="submit" form="search-film">Search</button>
         </p>
-    </footer>
-</div>
-</body>
-</html>
+    </aside>
+    <article class="filmblock">
+        <h3>
+            Search by name
+            <img src="{{ url_for('static', path='images/films.webp') }}"
+                 alt="Funny films"
+                 width="300"
+                 height="158"
+                 loading="lazy">
+        </h3>
+        <p>
+            <br>
+            Please enter film name (eg: "kodak portra 160")
+            <br>
+            <input maxlength="255"
+                   type="text"
+                   name="name"
+                   placeholder="Model Name"
+                   form="search-film">
+            <button type="submit" form="search-film">Search</button>
+            <br />
+            <br>
+            You can also search by manufacturer:
+            <br />
+            <input maxlength="255"
+                   type="text"
+                   name="manufacturer"
+                   placeholder="Manufacturer"
+                   form="search-film">
+            <button type="submit" form="search-film">Search</button>
+        </p>
+    </article>
+{% endblock content %}
+{% block footer %}
+    <p>
+        {{ total_count }} films in database.
+        <br>
+        Random film: <a href="{{ url_for('read_film', url_name=film['url_name']) }}">{{ film['name'] }}</a>
+    </p>
+{% endblock footer %}

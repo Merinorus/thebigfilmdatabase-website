@@ -46,6 +46,7 @@ p {
     }
     .header {
         background-image: url(../images/header.webp);
+        background-repeat: no-repeat;
         color: #FFF;
     }
 }
@@ -77,6 +78,13 @@ h1 {
     font-weight: 500;
     line-height: 12px;
     text-shadow: 0.1em 0.1em 0.2em black
+}
+
+h1 a {
+    color: inherit;
+    /* Inherit the color from the parent element (h1) */
+    text-decoration: none;
+    /* Remove underline */
 }
 
 h3 {
