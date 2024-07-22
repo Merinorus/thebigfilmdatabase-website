@@ -6,7 +6,7 @@ This script is used by Docker to do an HEALTHCHECK.
 This replace the curl command that is not shipped with docker slim images.
 """
 
-URL = "http://localhost:3500/health"
+URL = "http://localhost:3500/api/health"
 TIMEOUT = 1  # Delay in seconds
 
 

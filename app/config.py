@@ -1,3 +1,9 @@
+"""
+Application settings.
+
+All settings can be overridden by a .env file at runtime.
+"""
+
 import os
 
 from pydantic import Field, HttpUrl, NonNegativeFloat, NonNegativeInt
@@ -5,6 +11,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.constants import PROJECT_DIR
 
+# Provide CDN base URLs that can serve images from the Open source film database Github repository.
 _DEFAULT_CDN_BASE_URLS = ["https://cdn.statically.io/gh/merinorus/Open-source-film-database/master/Images/"]
 
 
@@ -16,8 +23,6 @@ class Settings(BaseSettings):
     FILM_DATABASE_REPO_DIR: str = str(os.path.join(PROJECT_DIR, "Open-source-film-database"))
 
     IMAGE_CDN_BASE_URLS: list[HttpUrl] = Field(min_length=1, default=_DEFAULT_CDN_BASE_URLS)
-    # IMAGE_DIR: str = str(os.path.join(FILM_DATABASE_REPO_DIR, "Images"))
-    # DB_CSV_FILEPATH: str = str(os.path.join(FILM_DATABASE_REPO_DIR, "film_database.csv"))
 
     # Location of the local database, created at application launch from the repo's data
     DB_SQLITE_FILEPATH: str = str(os.path.join(DATA_DIR, "film_database.db"))

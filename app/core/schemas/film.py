@@ -88,7 +88,7 @@ class FilmInDB(BaseModel):
     name: str = Field(max_length=255)
     url_name: str = Field(max_length=255)
     og_film_or_information: str | None = None
-    reliability: NonNegativeInt | None = Field(max=4)
+    reliability: NonNegativeInt | None = Field(max=4, default=None)
     manufacturer: str | None = None
     manufacturers: list[str] = None
     country: str | None = None
@@ -97,13 +97,6 @@ class FilmInDB(BaseModel):
     distributor: str | None = None
     availability: AvailabilityStatus | None = None
     picture: str | None = None
-
-    # @model_validator(mode="after")
-    # def check_dx_code_match_dx_full(self) -> Self:
-    #     if self.dx_extract and self.dx_full:
-    #         if self.dx_extract != self.dx_full[1:5]:
-    #             raise ValueError(f"DX full code ({self.dx_full}) doesn't match the DX extract ({self.dx_extract}). One of the two values is incorrect.")
-    #     return self
 
     @field_validator("*", mode="before")
     def empty_str_as_none(cls, value):
@@ -147,18 +140,3 @@ class HTMLFilmInDB(FilmInDB):
         if self.reliability is not None:
             self.reliability_img = f"/static/images/{self.reliability}.gif"
         return self
-
-    # @model_validator(mode="after")
-    # def set_reliability_img(self):
-    #     if self.reliability is not None:
-    #         self.reliability_img = f"{self.reliability}.gif"
-    #     return self
-
-    #     <p><strong>Original Film or information :</strong> {{ film['or_film_or_information'] }}</p>
-    # <p><strong>Manufacturer :</strong> {{ film['manufacturer'] }}</p>
-    # <p><strong>Country :</strong> {{ film['country'] }}</p>
-    # <p><strong>Beginning year :</strong> {{ film['begin_year'] }}</p>
-    # <p><strong>End year :</strong> {{ film['end_year'] }}</p>
-    # <p><strong>Distributor :</strong> {{ film['distributor'] }}</p>
-    # <p><strong>Availability :</strong> {{ film['availability'] }}</p>
-    # <p><strong>Picture :</strong> {{ film['picture'] }}</p>
