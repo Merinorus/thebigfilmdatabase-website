@@ -1,12 +1,49 @@
+from collections.abc import Sequence
 from typing import Any
 
-from pydantic import BaseModel, Field, PositiveInt, field_validator, model_validator
+from fastapi.exceptions import RequestErrorModel, RequestValidationError
+from pydantic import BaseModel, Field, PositiveInt, ValidationError, field_validator, model_validator
 
 from app.core.film import MAX_RESULTS
 from app.utils.dx import parse_dx_code, two_parts_dx_number_to_dx_extract
 
 
-class SearchFilmQuery(BaseModel):
+def _normalize_errors(errors: Sequence[Any]) -> list[dict[str, Any]]:
+    """Normalize Pydantic errors. Inspired from FastAPI source code (fastapi/routing.py)."""
+    use_errors: list[Any] = []
+    for error in errors:
+        if isinstance(error, Exception):
+            new_errors = ValidationError(  # type: ignore[call-arg]
+                errors=[error], model=RequestErrorModel
+            ).errors()
+            use_errors.extend(new_errors)
+        elif isinstance(error, list):
+            use_errors.extend(_normalize_errors(error))
+        else:
+            use_errors.append(error)
+    return use_errors
+
+
+class QueryModel(BaseModel):
+    """
+    Validate client queries.
+
+    A validation error will raise a BadRequest error (HTTP 400).
+    """
+
+    def __init__(self, **kwargs):
+        try:
+            super().__init__(**kwargs)
+        except ValidationError as e:
+            errors = e.errors()
+            for error in errors:
+                error["loc"] = ("query",) + error["loc"]
+                # Remove the pydantic documentation URL
+                error.pop("url")
+            raise RequestValidationError(_normalize_errors(errors)) from e
+
+
+class SearchFilmQuery(QueryModel):
     # Add some room space in case client provide unnecessary spaces or half frame number (eg: "162-16/21A")
     # The additional data will be stripped anyway
     dx_number: str | None = Field(

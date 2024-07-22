@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path
+from fastapi.exceptions import HTTPException
 
 from app.api.schemas.response import BaseResponse, FilmListResponse, FilmResponse
 from app.core import film
@@ -36,4 +37,6 @@ async def get_by_url_name(
     url_name: Annotated[str, Path(description="Unique URL-safe name of the film", max_length=255)],
 ):
     result = film.get_by_url(url_name)
+    if not result:
+        raise HTTPException(status_code=404, detail="Film not found")
     return FilmResponse(data=result)
