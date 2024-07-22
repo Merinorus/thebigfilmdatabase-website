@@ -4,7 +4,7 @@ from pydantic import TypeAdapter
 
 from app.core.database import db_ram_connection
 from app.core.schemas.film import FilmInDB, HTMLFilmInDB
-from app.utils.sql import sanitize_fulltext_string
+from app.utils.sql import fulltext_search_param, sanitize_fulltext_string
 from app.utils.url import url_safe_str
 
 # Max results allowed for a search request
@@ -88,10 +88,10 @@ def search(
 
     if name:
         db_query += " AND name MATCH ?"
-        params.append(f'"{sanitize_fulltext_string(name)}*"')
+        params.append(fulltext_search_param(name))
     if manufacturer:
         db_query += " AND manufacturer MATCH ?"
-        params.append(f'"{sanitize_fulltext_string(manufacturer)}*"')
+        params.append(fulltext_search_param(manufacturer))
     if params:
         order_by_params = []
         if dx_extract or dx_full:
