@@ -25,11 +25,13 @@ def get_film_type(dx_extract: int) -> str | None:
     return film_type
 
 
-def get_by_id(rowid: int) -> FilmInDB:
+def get_by_id(rowid: int) -> FilmInDB | None:
     """Return a film in database by its SQLite row ID."""
     query = "SELECT * FROM films WHERE rowid = ?"
     cursor.execute(query, [rowid])
     row = cursor.fetchone()
+    if not row:
+        return None
     column_names = [description[0] for description in cursor.description]
     film = dict(zip(column_names, row, strict=False))
     return FilmInDB(**film)

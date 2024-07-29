@@ -23,6 +23,7 @@ repos:
         name: Code security analysis (bandit)
         args: ["-c", "pyproject.toml", "-r", "app", "--severity=medium"]
         pass_filenames: false
+        additional_dependencies: ["bandit[toml]"]
         # stages: [push]  # Uncomment to temporarily accelerate local commits
 
   - repo: https://github.com/djlint/djlint
