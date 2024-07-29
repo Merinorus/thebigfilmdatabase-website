@@ -1,6 +1,6 @@
 # The Big Film Database
 
-This repository contains the source code of this website: [thebigfilmdatabase.merinorus.com/](thebigfilmdatabase.merinorus.com/)
+This repository contains the source code of this website: [thebigfilmdatabase.merinorus.com/](https://thebigfilmdatabase.merinorus.com/)
 
 This is a modified version of [The Big Film Database](https://industrieplus.net/dxdatabase/), which is still available (as of July, 2024).
 
