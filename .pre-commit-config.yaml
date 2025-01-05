@@ -1,6 +1,6 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
-default_stages: [commit]
+default_stages: [pre-commit]
 # default_install_hook_types: ["pre-commit"]
 fail_fast: true
 # default_language_version:
@@ -8,7 +8,7 @@ fail_fast: true
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.5.2"
+    rev: "v0.8.6"
     hooks:
       - id: ruff
         name: Code linter (Ruff)
@@ -17,7 +17,7 @@ repos:
         name: Code formatter (Ruff)
 
   - repo: https://github.com/pycqa/bandit
-    rev: "1.7.9"
+    rev: "1.8.0"
     hooks:
       - id: bandit
         name: Code security analysis (bandit)
@@ -27,7 +27,7 @@ repos:
         # stages: [push]  # Uncomment to temporarily accelerate local commits
 
   - repo: https://github.com/djlint/djlint
-    rev: v1.34.1
+    rev: v1.36.4
     hooks:
       - id: djlint
         name: djLint
