@@ -15,6 +15,7 @@ from pydantic import (
 from pydantic_core import CoreSchema, core_schema
 
 from app.config import settings
+from app.utils.barcode_writer import generate_dx_film_edge_barcode
 
 image_cdn_base_url = settings.IMAGE_CDN_BASE_URLS[0]
 
@@ -112,6 +113,29 @@ class FilmInDB(BaseModel):
         This means that either one or the other is not set properly.
         """
         return self.dx_extract and self.dx_full and self.dx_extract != self.dx_full[1:5]
+
+    def dx_film_edge_barcode_svg(self, frame_number: str | None = None):
+        """Return the DX film edge barcode for this film, if available.
+
+        The frame number is optional.
+
+        Args:
+            frame_number (str | None, optional): Frame number. Defaults to None.
+
+        Returns:
+            the DX film edge barcode, as SVG
+        """
+        size_hint = 50
+        if self.dx_extract and frame_number is not None:
+            # With the zxing-cpp library, the width can be modified.
+            # We want the two formats to have the same height.
+            # The short format length is 23, the long format length is 32.
+            # So this is a dubious computation to generate both image with the same height.
+            return generate_dx_film_edge_barcode(f"{self.dx_extract}/{frame_number}", size_hint * 32 // 23)
+        elif self.dx_extract:
+            return generate_dx_film_edge_barcode(self.dx_extract, size_hint)
+        else:
+            return None
 
     @field_validator("picture", mode="after")
     def absolute_picture_url(cls, value):

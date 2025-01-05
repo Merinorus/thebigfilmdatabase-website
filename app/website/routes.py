@@ -4,7 +4,7 @@ from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, Request
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
 
@@ -70,14 +70,16 @@ async def search(request: Request, query: Annotated[SearchFilmQuery, Depends(Sea
     if query.dx_extract or query.dx_full:
         dx_extract = query.dx_extract or query.dx_full[1:5]
         film_type = get_film_type(dx_extract)
-
-    films = film.search(
-        dx_extract=query.dx_extract,
-        dx_full=query.dx_full,
-        name=query.name,
-        manufacturer=query.manufacturer,
-        limit=query.limit,
-    )
+    try:
+        films = film.search(
+            dx_extract=query.dx_extract,
+            dx_full=query.dx_full,
+            name=query.name,
+            manufacturer=query.manufacturer,
+            limit=query.limit,
+        )
+    except ValueError:
+        return RedirectResponse(url="/")
     count = len(films)
     too_many_results = False
     if count >= MAX_RESULTS:
