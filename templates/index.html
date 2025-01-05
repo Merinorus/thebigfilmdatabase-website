@@ -11,11 +11,6 @@
         </p>
     </footer>
     <aside class="dxblock">
-        <form action='{{ url_for("search") }}'
-              method="get"
-              name="search-film"
-              id="search-film">
-        </form>
         <h3>
             Search by DX number
             <img src="{{ url_for('static', path='images/dx_code.webp') }}"
@@ -24,9 +19,19 @@
                  height="158"
                  loading="lazy">
         </h3>
+        <form action='{{ url_for("search") }}'
+              method="get"
+              name="search-by-dx-full"
+              id="search-by-dx-full">
+        </form>
+        <form action='{{ url_for("search") }}'
+              method="get"
+              name="search-by-dx-parts"
+              id="search-by-dx-parts">
+        </form>
         <p>
             <br>
-            Please enter the DX full number (6 digits):
+            Search by DX full number (6 digits):
             <br>
             <input minlength="1"
                    maxlength="6"
@@ -34,11 +39,11 @@
                    type="text"
                    name="dx_full"
                    placeholder="DX full barcode (6 digits)"
-                   form="search-film">
-            <button type="submit" form="search-film">Search</button>
+                   form="search-by-dx-full">
+            <button type="submit" form="search-by-dx-full">Search</button>
             <br>
             <br>
-            You can also search by DX number parts 1 and 2:
+            Search by DX number parts 1 and 2:
             <br>
             <input minlength="1"
                    maxlength="10"
@@ -46,8 +51,8 @@
                    type="text"
                    name="dx_number"
                    placeholder="DX number (eg: 115-10)"
-                   form="search-film">
-            <button type="submit" form="search-film">Search</button>
+                   form="search-by-dx-parts">
+            <button type="submit" form="search-by-dx-parts">Search</button>
         </p>
     </aside>
     <article class="filmblock">
@@ -59,26 +64,32 @@
                  height="158"
                  loading="lazy">
         </h3>
+        <form action='{{ url_for("search") }}'
+              method="get"
+              name="search-film"
+              id="search-film">
+        </form>
         <p>
             <br>
-            Please enter film name (eg: "kodak portra 160")
+            Please enter the model name (eg: Lomography APX400).
+            <br>
+            You can also filter by manufacturer (eg: Agfa):
             <br>
             <input maxlength="255"
                    type="text"
                    name="name"
                    placeholder="Model Name"
+                   size="22"
                    form="search-film">
-            <button type="submit" form="search-film">Search</button>
-            <br />
-            <br>
-            You can also search by manufacturer:
-            <br />
             <input maxlength="255"
                    type="text"
                    name="manufacturer"
                    placeholder="Manufacturer"
+                   size="8"
                    form="search-film">
             <button type="submit" form="search-film">Search</button>
+            <br>
+            <br>
         </p>
     </article>
 {% endblock content %}
@@ -86,6 +97,6 @@
     <p>
         {{ total_count }} films in database.
         <br>
-        Random film: <a href="{{ url_for('read_film', url_name=film['url_name']) }}">{{ film['name'] }}</a>
+        Random film: <a href="{{ url_for('read_film', url_name=film.url_name) }}">{{ film.name }}</a>
     </p>
 {% endblock footer %}
