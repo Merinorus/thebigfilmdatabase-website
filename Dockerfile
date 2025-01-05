@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bookworm AS base
+FROM python:3.11-slim-bookworm AS runtimebase
 
 # You can periodically change this variable to enable rebuild, eg. for regular security updates
 ARG CACHEBUST=0
@@ -7,22 +7,33 @@ ARG CACHEBUST=0
 
 RUN apt-get update -y \
   && apt-get upgrade -y \
-  && apt-get install -yq pkg-config \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
   && mkdir -p /usr/src/app/logs
 
-FROM base AS buildstage
+FROM python:3.11-bookworm AS buildbase
+
+# Prepare environment
+
+RUN apt-get update -y \
+  && apt-get install --no-install-recommends -yq pkg-config \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+FROM buildbase AS buildstage
 
 # Dependencies needed for build only
 RUN apt-get update -y \
-  && apt-get install -yq build-essential python3-dev git \
+  && apt-get install --no-install-recommends -yq build-essential python3-dev git \
   && pip3 install --no-cache-dir --upgrade pip \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
 COPY ./requirements.txt /usr/src/app/requirements.txt
+
+# You can periodically change this variable to enable rebuild, eg. for regular security updates
+ARG CACHEBUST=0
 RUN pip3 install --no-cache-dir -r /usr/src/app/requirements.txt
 
 FROM buildstage AS installstage
@@ -46,11 +57,11 @@ COPY ./requirements-dev.txt /usr/src/app/requirements-dev.txt
 RUN pip3 install --no-cache-dir -r /usr/src/app/requirements-dev.txt
 
 
-FROM base AS local-image
+FROM runtimebase AS local-image
 
 # Convenient packages to help debugging
 RUN apt-get update -y \
-  && apt-get install -yq iputils-ping vim \
+  && apt-get install --no-install-recommends -yq iputils-ping vim \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
@@ -66,7 +77,7 @@ COPY . /usr/src
 # Launch the application
 ENTRYPOINT ["python", "-m", "app"]
 
-FROM base AS runtime-image
+FROM runtimebase AS runtime-image
 
 # Copy dependencies to runtime image
 COPY --from=buildstage /usr/local/lib /usr/local/lib
