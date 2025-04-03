@@ -34,22 +34,6 @@ def update_db():
     db_column_names = deepcopy(df_column_names)
     db_column_names.append("url_name")
 
-    # db_column_names = [
-    #     "dx_extract",
-    #     "dx_full",
-    #     "name",
-    #     "url_name",
-    #     "og_film_or_information",
-    #     "manufacturer",
-    #     "reliability",
-    #     "country",
-    #     "begin_year",
-    #     "end_year",
-    #     "distributor",
-    #     "availability",
-    #     "picture",
-    # ]
-
     print(f"db_column_names: {db_column_names}")
     # Load the CSV file
     df: pd.DataFrame = pd.read_csv(
@@ -77,12 +61,6 @@ def update_db():
     for column_name in ["reliability"]:
         df[column_name] = df[column_name].astype(float)
         df[column_name] = df[column_name].fillna("")
-        # df[column_name] = df[column_name].astype(str)
-
-    #         df[col] = df[col].fillna(-1)
-    # df[col] = df[col].astype(int)
-    # df[col] = df[col].astype(str)
-    # df[col] = df[col].replace('-1', np.nan)
 
     for column_name in ["dx_extract", "dx_full"]:
         df[column_name] = df[column_name].fillna(0)
@@ -90,11 +68,6 @@ def update_db():
         df[column_name] = df[column_name].fillna("").astype(int)
         df[column_name] = df[column_name].replace(0, "")
         df[column_name] = df[column_name].astype(str)
-        # df[column_name] = df[column_name].fillna('').astype(int)
-        # df[column_name] = df[column_name].fill
-
-    # TODO reliability in float/int ?
-    # df['reliability'] = df['reliability'].fillna('').astype(int)
 
     # Add leading zeros to DX codes
     df["dx_full"] = df["dx_full"].str.zfill(6)
@@ -104,24 +77,15 @@ def update_db():
     df["dx_extract"] = df["dx_extract"].apply(lambda x: None if x == "0000" else x)
 
     # Strip leading and trailing spaces from string columns
-    df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+    df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
 
     # Encode film name
     df["url_name"] = df["name"].apply(generate_unique_url)
 
     # Save the dataframe to a SQLite database
     pathlib.Path(settings.DB_SQLITE_FILEPATH).parent.mkdir(parents=True, exist_ok=True)
-    # assert False, pathlib.Path(settings.DB_SQLITE_FILEPATH).parent
-    # assert False, settings.DB_SQLITE_FILEPATH
+
     db_file_connection = sqlite3.connect(settings.DB_SQLITE_FILEPATH)
-    # df.to_sql('films', db_file_connection, if_exists='replace', index=False)
-
-    # # Convertir les NaN en chaînes vides et s'assurer que les colonnes sont des chaînes
-    # df = df.fillna("").astype(str)
-
-    # Convertir les NaN en NULL values en SQL et s'assurer que les colonnes sont des chaînes
-    # df = df.replace("", None)
-    # df = df.applymap(lambda x: None if isinstance(x, str) and x == "" else x)
 
     print(df[0:10])
     print(df[2700:2710])
@@ -133,15 +97,9 @@ def update_db():
     create_table_query = f"CREATE VIRTUAL TABLE IF NOT EXISTS {DB_TABLE_NAME} USING FTS5({', '.join(db_column_names)});"
     print(create_table_query)
     cursor.execute(create_table_query)
-    # cursor.execute('create virtual table films using fts5(title, genre, rating, tokenize="porter unicode61");')
 
     # Charger le DataFrame dans SQLite
     df.to_sql(name=DB_TABLE_NAME, con=db_file_connection, if_exists="append", index=False)
-
-    # # Replace empty strings by null values
-    # for column in db_column_names:
-    #     db_query = f"UPDATE films SET {column} = CASE WHEN {column} = '' THEN NULL ELSE {column} END;"
-    #     cursor.execute(db_query)
 
     db_file_connection.commit()
 
@@ -152,8 +110,7 @@ def update_db():
     print(len(films))
     for film in films[47:49]:
         print(film)
-    # ta = TypeAdapter(list[Film])
-    # film_list = ta.validate_python(films)
+
     ta = TypeAdapter(list[HTMLFilmInDB])
     film_list = ta.validate_python(films)
     for film in film_list[47:49]:
