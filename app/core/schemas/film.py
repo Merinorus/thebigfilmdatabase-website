@@ -4,6 +4,7 @@ from enum import IntEnum
 from typing import Any, Union
 from urllib.parse import urljoin
 
+from app.utils.dx import dx_extract_to_two_part_dx_number
 from pydantic import (
     BaseModel,
     Field,
@@ -105,6 +106,20 @@ class FilmInDB(BaseModel):
             value = None
         return value
 
+    @property
+    def dx_number(self) -> str | None:
+        """
+        Return the DX number in the "XXX-YY" format.
+        
+        XXX (digits) is the DX number part 1 (product code),
+        YY  (digits) is the DX number part 2 (generation code).
+        """
+        if self.dx_extract:
+            return dx_extract_to_two_part_dx_number(self.dx_extract)
+        if self.dx_full:
+            return dx_extract_to_two_part_dx_number(self.dx_full[1:5])
+        return None
+        
     @property
     def dx_extract_full_mismatch(self) -> bool:
         """
