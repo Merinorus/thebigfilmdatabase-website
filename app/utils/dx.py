@@ -48,7 +48,7 @@ def dx_extract_to_two_part_dx_number(dx_extract: str) -> str | None:
         dx_extract (str): the DX extract (four digits)
 
     Returns:
-        str | None: The DX number, if a DX extract has been provided
+        str | None: The DX number, if a valid DX extract has been provided, else None
     """
     if not dx_extract:
         return None
@@ -61,7 +61,6 @@ def dx_extract_to_two_part_dx_number(dx_extract: str) -> str | None:
         dx_part_1 = dx_extract // 16
         dx_part_2 = dx_extract % 16
         return f"{dx_part_1}-{dx_part_2}"
-    except Exception as e:
-        raise ValueError("The DX extract should be a number between 16 and 2047") from e
-        
-        
+    except Exception:
+        # Silently fail
+        return None
