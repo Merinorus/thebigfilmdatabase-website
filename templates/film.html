@@ -38,7 +38,11 @@
                 {% endif %}
                 <br />
             {% endif %}
-            {% if film.dx_extract %}
+            {% if film['dx_number'] %}
+                <strong>DX number :</strong> <a href="{{ url_for("search") }}?dx_number={{ film['dx_number'] }}">{{ film['dx_number'] }}</a>
+                <br />
+            {% endif %}
+            {% if film['dx_extract'] %}
                 <strong>DX extract :</strong> <a href="{{ url_for("search") }}?dx_extract={{ film.dx_extract }}">{{ film.dx_extract }}</a>
                 <br />
             {% endif %}

@@ -38,3 +38,30 @@ def two_parts_dx_number_to_dx_extract(dx_number: str) -> str | None:
         raise ValueError(
             'Invalid DX number. The accepted format is two series of digits separated by a dash. "XXX-XX"'
         ) from e
+
+def dx_extract_to_two_part_dx_number(dx_extract: str) -> str | None:
+    """Convert a 4-digit long DX extract to its DX number equivalent in "XXX-YY" format.        
+        XXX (digits) is the DX number part 1 (product code),
+        YY  (digits) is the DX number part 2 (generation code).
+
+    Args:
+        dx_extract (str): the DX extract (four digits)
+
+    Returns:
+        str | None: The DX number, if a DX extract has been provided
+    """
+    if not dx_extract:
+        return None
+    try:
+        dx_extract = int(dx_extract)
+        if dx_extract < 16:
+            raise ValueError("DX extract value should be at least 16")
+        if dx_extract > 2047:
+            raise ValueError("DX extract value should be at most 2047")
+        dx_part_1 = dx_extract // 16
+        dx_part_2 = dx_extract % 16
+        return f"{dx_part_1}-{dx_part_2}"
+    except Exception as e:
+        raise ValueError("The DX extract should be a number between 16 and 2047") from e
+        
+        
