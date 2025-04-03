@@ -4,7 +4,6 @@ from enum import IntEnum
 from typing import Any, Union
 from urllib.parse import urljoin
 
-from app.utils.dx import dx_extract_to_two_part_dx_number
 from pydantic import (
     BaseModel,
     Field,
@@ -17,6 +16,7 @@ from pydantic_core import CoreSchema, core_schema
 
 from app.config import settings
 from app.utils.barcode_writer import generate_dx_film_edge_barcode
+from app.utils.dx import dx_extract_to_two_part_dx_number
 
 image_cdn_base_url = settings.IMAGE_CDN_BASE_URLS[0]
 
@@ -110,7 +110,7 @@ class FilmInDB(BaseModel):
     def dx_number(self) -> str | None:
         """
         Return the DX number in the "XXX-YY" format.
-        
+
         XXX (digits) is the DX number part 1 (product code),
         YY  (digits) is the DX number part 2 (generation code).
         """
@@ -119,7 +119,7 @@ class FilmInDB(BaseModel):
         if self.dx_full:
             return dx_extract_to_two_part_dx_number(self.dx_full[1:5])
         return None
-        
+
     @property
     def dx_extract_full_mismatch(self) -> bool:
         """

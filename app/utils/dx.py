@@ -39,8 +39,9 @@ def two_parts_dx_number_to_dx_extract(dx_number: str) -> str | None:
             'Invalid DX number. The accepted format is two series of digits separated by a dash. "XXX-XX"'
         ) from e
 
+
 def dx_extract_to_two_part_dx_number(dx_extract: str) -> str | None:
-    """Convert a 4-digit long DX extract to its DX number equivalent in "XXX-YY" format.        
+    """Convert a 4-digit long DX extract to its DX number equivalent in "XXX-YY" format.
         XXX (digits) is the DX number part 1 (product code),
         YY  (digits) is the DX number part 2 (generation code).
 

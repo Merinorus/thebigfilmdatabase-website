@@ -130,7 +130,7 @@ def update_db():
     # Prepare database table with fulltext index
     cursor = db_file_connection.cursor()
     cursor.execute(f"DROP TABLE IF EXISTS {DB_TABLE_NAME}")
-    create_table_query = f'CREATE VIRTUAL TABLE IF NOT EXISTS {DB_TABLE_NAME} USING FTS5({", ".join(db_column_names)});'
+    create_table_query = f"CREATE VIRTUAL TABLE IF NOT EXISTS {DB_TABLE_NAME} USING FTS5({', '.join(db_column_names)});"
     print(create_table_query)
     cursor.execute(create_table_query)
     # cursor.execute('create virtual table films using fts5(title, genre, rating, tokenize="porter unicode61");')
