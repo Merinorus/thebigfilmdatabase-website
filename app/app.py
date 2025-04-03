@@ -1,6 +1,3 @@
-from collections import defaultdict
-from datetime import datetime, timedelta
-
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -24,12 +21,14 @@ storage = MemoryStorage()
 limiter = SlidingWindowCounterRateLimiter(storage)
 rate_limit = RateLimitItemPerSecond(settings.RATE_LIMITER_MAX_REQUESTS, settings.RATE_LIMITER_TIME_WINDOW)
 
+
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     client_ip = request.client.host
     if not limiter.hit(rate_limit, client_ip):
         return JSONResponse(status_code=429, content={"detail": "Too Many Requests"})
     return await call_next(request)
+
 
 app.include_router(website)
 app.include_router(api)
