@@ -12,7 +12,9 @@
     </footer>
     <aside class="dxblock">
         <h3>
-            Search by DX number
+            Search a film by DX number
+            <br>
+            <br>
             <img src="{{ url_for('static', path='images/dx_code.webp') }}"
                  alt="Canister with a Dx code"
                  width="300"
@@ -57,7 +59,9 @@
     </aside>
     <article class="filmblock">
         <h3>
-            Search by name
+            Search a film by name
+            <br>
+            <br>
             <img src="{{ url_for('static', path='images/films.webp') }}"
                  alt="Funny films"
                  width="300"
@@ -78,12 +82,16 @@
             <input maxlength="255"
                    type="text"
                    name="name"
+                   id="film_name"
+                   autocomplete="35mm-film-name"
                    placeholder="Model Name"
-                   size="22"
+                   size="20"
                    form="search-film">
             <input maxlength="255"
                    type="text"
+                   id="film_manufacturer"
                    name="manufacturer"
+                   autocomplete="35mm-film-manufacturer"
                    placeholder="Manufacturer"
                    size="8"
                    form="search-film">

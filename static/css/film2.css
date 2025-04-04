@@ -8,28 +8,57 @@ body {
     font-family: 'Open Sans', 'sans-serif';
     background-color: #fff;
     color: #444;
+    font-size: 14px;
 }
 
-h1,
-p {
+
+/* p {
     margin: 0 0 1em 0;
-}
+} */
 
 .wrapper {
     max-width: 940px;
-    margin: 0 20px;
+    grid-template-columns: 1fr; /* default: single column */
+    margin: 0 auto;
     display: grid;
     grid-gap: 10px;
 }
 
+img.filmpicture{
+    width: 150px;
+    height: 100px;
+    mix-blend-mode: multiply;
+}
+
+@media (max-width: 600px) {
+    h1{
+        font-size: 20px;
+    }
+    img.filmpicture{
+        width: 120px;
+        height: 80px;
+    }
+    body{
+        font-size:18px;
+    }
+}
+
+.header {
+    background-image: url(../images/header.webp);
+    background-repeat: no-repeat;
+    color: #FFF;
+}
+
+
+
 @media screen and (min-width: 750px) {
     /* no grid support? */
-    .dxblock {
+    /*.dxblock {
         float: left;
     }
     .filmblock {
         float: right;
-    }
+    }*/
     .wrapper {
         margin: 0 auto;
         grid-template-columns: 1fr 1fr;
@@ -44,17 +73,14 @@ p {
         /* needed for the floated layout */
         background-color: #E3F2FD;
     }
-    .header {
-        background-image: url(../images/header.webp);
-        background-repeat: no-repeat;
-        color: #FFF;
-    }
 }
+
+
 
 .wrapper>* {
     background-color: #dae2ea;
     border-radius: 5px;
-    padding: 20px;
+    padding: 10px;
     /* font-size: 150%; */
     /* needed for the floated layout*/
     margin-bottom: 10px;
@@ -72,13 +98,13 @@ p {
 
 h1 {
     font-family: Verdana, Geneva, sans-serif;
-    font-size: 28px;
     font-style: normal;
     font-variant: normal;
     font-weight: 500;
     line-height: 12px;
     text-shadow: 0.1em 0.1em 0.2em black;
     color: #f8f8f2;
+    margin: 0.4em 0.4em 0.4em 0.4em;
 }
 
 h1 a {
@@ -94,14 +120,13 @@ a {
 
 h3 {
     font-family: Verdana, Geneva, sans-serif;
-    font-size: 14px;
+    font-size: 18px;
     font-style: normal;
     font-variant: normal;
     line-height: 25.4px;
     text-align: center;
 }
 
-p,
 li {
     font-family: Verdana, Geneva, sans-serif;
     font-size: 12px;
