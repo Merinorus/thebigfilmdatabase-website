@@ -15,17 +15,9 @@
         <footer class="footer">
             {% if film.picture %}
                 <img src="{{ film.picture }}"
+                     class="filmpicture"
                      align="right"
-                     width="150"
-                     height="100"
                      alt="{{ film.name }}"
-                     loading="lazy">
-            {% else %}
-                <img src="{{ url_for('static', path='images/no_picture.webp') }}"
-                     align="right"
-                     width="150"
-                     height="100"
-                     alt="no picture"
                      loading="lazy">
             {% endif %}
             <strong><a href="{{ url_for('read_film', url_name=film.url_name) }}">{{ film.name }}</a></strong>
@@ -36,8 +28,9 @@
                 {% if film.reliability %}
                     - certitude:
                     <img src="{{ film.reliability_img }}"
-                         width="25"
-                         height="23"
+                         style="height: 1.5em;
+                                width:auto;
+                                vertical-align: middle"
                          alt="certitude {{ film.reliability }}/4">
                 {% endif %}
                 <br />

@@ -19,6 +19,7 @@ pip install -r requirements-install.txt
 Then, update the local database from the Film CSV file:
 
 ```sh
+git clone https://github.com/dxdatabase/Open-source-film-database Open-source-film-database
 python -m app.install
 ```
 
