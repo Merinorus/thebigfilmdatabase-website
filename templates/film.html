@@ -11,17 +11,9 @@
         {% if film %}
             {% if film.picture %}
                 <img src="{{ film.picture }}"
+                     class="filmpicture"
                      align="right"
-                     width="150"
-                     height="100"
                      alt="{{ film.name }}"
-                     loading="lazy">
-            {% else %}
-                <img src="{{ url_for('static', path='images/no_picture.webp') }}"
-                     align="right"
-                     width="150"
-                     height="100"
-                     alt="no picture"
                      loading="lazy">
             {% endif %}
             <strong><a href="{{ film.url_name }}">{{ film.name }}</a></strong>
