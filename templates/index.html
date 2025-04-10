@@ -127,10 +127,7 @@
             Scan directly the barcode on the cassette or on the 35mm film.
             <br>
             Camera:
-            <select id="cameraSelector">
-                <option value="user">Front Camera</option>
-                <option value="environment" selected>Back Camera</option>
-            </select>
+            <select id="cameraSelector"></select>
             <select style="display:none" id="dxformat">
                 <option value="DXFilmEdge,ITF">DXFilmEdge,ITF</option>
             </select>
@@ -140,7 +137,7 @@
             <div id="result" style="display:none"></div>
             <script src="{{ url_for('static', path='scripts/zxing_reader.js') }}?ver=1"
                     defer></script>
-            <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=2"
+            <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=6"
                     defer></script>
             <br>
             <br>

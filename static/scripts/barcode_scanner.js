@@ -9,6 +9,8 @@ const canvas = document.getElementById("barcodescancanvas");
 const enableimg = document.getElementById("barcodescanenableimg");
 const resultElement = document.getElementById("result");
 let videostreamstarted = false;
+let currentStream = null;
+
 
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const video = document.createElement("video");
@@ -35,6 +37,38 @@ function readBarcodeFromCanvas(canvas, format, mode) {
         return { error: "ZXing not yet initialized" };
     }
 }
+
+// function getDevices() {
+//     try {
+//       // Get all devices (audio & video)
+//       const devices = navigator.mediaDevices.enumerateDevices();
+      
+//       // Filter for video input devices (cameras)
+//       return devices.filter(device => device.kind === "videoinput");
+//     } catch (err) {
+//       console.error("Error accessing devices:", err);
+//       return [];
+//     }
+//   }
+
+// function populateCameraOptions(videoDevices) {
+// // Clear the previous camera options
+// cameraSelector.innerHTML = "";
+
+// // Populate the dropdown with available video devices (cameras)
+// videoDevices.forEach(device => {
+//     const option = document.createElement("option");
+//     option.value = device.deviceId;
+//     option.textContent = device.label || `Camera ${cameraSelector.length + 1}`;
+//     cameraSelector.appendChild(option);
+// });
+
+// // Trigger the camera on the first device
+// if (videoDevices.length > 0) {
+//     cameraSelector.value = videoDevices[0].deviceId;
+//     startCamera(videoDevices[0].deviceId);
+// }
+// }
 
 function drawResult(code) {
     ctx.beginPath();
@@ -75,18 +109,27 @@ const processFrame = function () {
 };
 
 const updateVideoStream = function (deviceId) {
+    console.log("call updateVideoStream: " + deviceId)
+    console.log("currentStream: " + currentStream);
+
+
     canvas.style.display = "";
     enableimg.style.display = "none";
-    // To ensure the camera switch, it is advisable to free up the media resources
-    if (video.srcObject) video.srcObject.getTracks().forEach(track => track.stop());
+
+    if (currentStream) {
+        // Stop all tracks when switching or stopping the camera
+        currentStream.getTracks().forEach(track => track.stop());
+    }
 
     navigator.mediaDevices
-        .getUserMedia({ video: { facingMode: {"exact": deviceId} }, audio: false })
+        .getUserMedia({ video: {facingMode: "environment", "deviceId": deviceId }, audio: false })
         .then(function (stream) {
+            currentStream = stream;
             video.srcObject = stream;
             video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
             video.play();
             processFrame();
+            console.log("currentStream: " + currentStream);
         })
         .catch(function (error) {
             console.error("Error accessing camera:", error);
@@ -106,3 +149,45 @@ cameraSelector.addEventListener("change", function () {
     }
     updateVideoStream(this.value);
 });
+
+if (!navigator.mediaDevices?.enumerateDevices) {
+    console.log("enumerateDevices() not supported.");
+  } else {
+    // List cameras and microphones.
+    navigator.mediaDevices
+      .enumerateDevices()
+      .then((devices) => {
+        let audioSource = null;
+        let videoSource = null;
+  
+        devices.forEach((device) => {
+          if (device.kind === "audioinput") {
+            audioSource = device.deviceId;
+          } else if (device.kind === "videoinput") {
+            videoSource = device.deviceId;
+            const option = document.createElement("option");
+            option.value = device.deviceId;
+            option.text = device.label;
+            cameraSelector.add(option, null);
+            console.log(device)
+          }
+        });
+        //sourceSelected(audioSource, videoSource);
+      })
+      .catch((err) => {
+        console.error(`${err.name}: ${err.message}`);
+      });
+  }
+
+// async function sourceSelected(audioSource, videoSource) {
+// const constraints = {
+//     audio: { deviceId: audioSource },
+//     video: { deviceId: videoSource },
+// };
+// const stream = await navigator.mediaDevices.getUserMedia(constraints);
+// }
+
+// // Fetch video devices (cameras)
+// navigator.mediaDevices.getUserMedia({ video: true });
+// const videoDevices = getDevices();
+// populateCameraOptions(videoDevices);
