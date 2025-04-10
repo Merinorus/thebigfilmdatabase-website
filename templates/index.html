@@ -100,6 +100,49 @@
             <br>
         </p>
     </article>
+    <article class="filmblock">
+        <h3>
+            Search with your camera
+            <p id="camera-activate">
+                <canvas style="display:none" id="barcodescancanvas" width="300" height="225"></canvas>
+                <img width="300"
+                     height="225"
+                     id="barcodescanenableimg"
+                     src="{{ url_for('static', path='images/enable_camera.png') }}"
+                     alt="Activate Camera" />
+            </p>
+        </h3>
+        <form action='{{ url_for("search") }}'
+              method="get"
+              name="search-film"
+              id="search-film">
+        </form>
+        <p>
+            <noscript>
+                <div style="color: red; font-size: 16px;">
+                    <p>This feature needs JavaScript to be enabled.</p>
+                </div>
+            </noscript>
+            <br>
+            Scan directly the barcode on the cassette or on the 35mm film.
+            <br>
+            Camera:
+            <select id="cameraSelector"></select>
+            <select style="display:none" id="dxformat">
+                <option value="DXFilmEdge,ITF">DXFilmEdge,ITF</option>
+            </select>
+            <select style="display:none" id="mode">
+                <option value="true" selected=""></option>
+            </select>
+            <div id="result" style="display:none"></div>
+            <script src="{{ url_for('static', path='scripts/zxing_reader.js') }}?ver=1"
+                    defer></script>
+            <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=7"
+                    defer></script>
+            <br>
+            <br>
+        </p>
+    </article>
 {% endblock content %}
 {% block footer %}
     <p>
