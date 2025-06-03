@@ -124,7 +124,9 @@
                 </div>
             </noscript>
             <br>
-            Scan directly the barcode on the cassette or on the 35mm film.
+            Scan the barcode directly on the cassette or on the 35mm film.
+            <br />
+            On smartphones, best results are obtained with the main back camera. Avoid wide-angle lenses.
             <br>
             Camera:
             <select id="cameraSelector"></select>
@@ -137,7 +139,7 @@
             <div id="result" style="display:none"></div>
             <script src="{{ url_for('static', path='scripts/zxing_reader.js') }}?ver=1"
                     defer></script>
-            <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=8"
+            <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=11"
                     defer></script>
             <br>
             <br>
