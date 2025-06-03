@@ -19,7 +19,7 @@ video.setAttribute("width", canvas.width);
 video.setAttribute("height", canvas.height);
 video.setAttribute("autoplay", "");
 canvas.appendChild(video);
-let lastDetectedCode = null;
+let nbdetected = 0;
 
 function readBarcodeFromCanvas(canvas, format, tryHarder) {
     var imgWidth = canvas.width;
@@ -61,9 +61,8 @@ const processFrame = function () {
 
     const code = readBarcodeFromCanvas(canvas, format.value, tryHarder === 'true');
     if (code.format) {
-        const fullCode = `${code.format}:${code.text}`;
-        if (fullCode !== lastDetectedCode) {
-            lastDetectedCode = fullCode;
+        nbdetected = (nbdetected + 1) % 10;
+        if (nbdetected === 1) {
             resultElement.innerText = code.format + ": " + escapeTags(code.text);
             drawResult(code)
             if (code.format === "ITF") {
