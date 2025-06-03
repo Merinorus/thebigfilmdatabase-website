@@ -8,7 +8,7 @@ fail_fast: true
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.11.3"
+    rev: "v0.12.1"
     hooks:
       - id: ruff
         name: Code linter (Ruff)
@@ -17,7 +17,7 @@ repos:
         name: Code formatter (Ruff)
 
   - repo: https://github.com/pycqa/bandit
-    rev: "1.8.3"
+    rev: "1.8.5"
     hooks:
       - id: bandit
         name: Code security analysis (bandit)
