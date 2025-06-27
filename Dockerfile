@@ -47,7 +47,8 @@ COPY app /usr/src/app
 
 # Create the SQLite database from the Film CSV database
 ARG FILM_DATABASE_REPO="https://github.com/Merinorus/Open-source-film-database"
-RUN git clone $FILM_DATABASE_REPO Open-source-film-database
+ARG FILM_DATABASE_BRANCH="main"
+RUN git clone -b $FILM_DATABASE_BRANCH $FILM_DATABASE_REPO Open-source-film-database
 RUN python -m app.install
 
 FROM buildstage AS buildstage-dev
@@ -87,9 +88,7 @@ COPY --from=installstage /usr/src/data/film_database.db /usr/src/data/film_datab
 # Expose API port 3500
 
 # Copy app files
-COPY app /usr/src/app
-COPY static /usr/src/static
-COPY templates /usr/src/templates
+COPY . /usr/src
 RUN useradd -u 9999 app
 RUN chown -R app:app /usr/src
 USER app
@@ -100,7 +99,7 @@ EXPOSE 3500
 
 # Launch the application
 ENTRYPOINT []
-CMD ["uvicorn", "app.app:app", "--host", "0.0.0.0", "--port", "3500"]
+CMD ["uvicorn", "app.app:app", "--host", "0.0.0.0", "--port", "3500", "--log-config=log_conf.json"]
 
 # Regular health check
 HEALTHCHECK --interval=10s --timeout=3s --retries=3 --start-period=10s CMD python -m app.healthcheck
