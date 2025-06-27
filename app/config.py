@@ -22,7 +22,9 @@ class Settings(BaseSettings):
     # Clone this repo (or a fork) to a local directory: git clone https://github.com/dxdatabase/Open-source-film-database Open-source-film-database
     FILM_DATABASE_REPO_DIR: str = str(os.path.join(PROJECT_DIR, "Open-source-film-database"))
 
-    IMAGE_CDN_BASE_URLS: list[HttpUrl] = Field(min_length=1, default=_DEFAULT_CDN_BASE_URLS)
+    FILM_IMAGE_DIR: str = str(os.path.join(FILM_DATABASE_REPO_DIR, "Images"))
+    FILM_IMAGE_CDN_ENABLE: bool = True
+    FILM_IMAGE_CDN_BASE_URLS: list[HttpUrl] = Field(min_length=1, default=_DEFAULT_CDN_BASE_URLS)
 
     # Location of the local database, created at application launch from the repo's data
     DB_SQLITE_FILEPATH: str = str(os.path.join(DATA_DIR, "film_database.db"))
