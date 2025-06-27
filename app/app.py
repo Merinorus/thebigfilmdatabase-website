@@ -1,4 +1,8 @@
+import asyncio
+import contextlib
+
 from fastapi import FastAPI, Request
+from fastapi.concurrency import asynccontextmanager
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from limits import RateLimitItemPerSecond
@@ -8,9 +12,33 @@ from limits.strategies import SlidingWindowCounterRateLimiter
 from app.api.routes import api
 from app.config import settings
 from app.constants import FILM_IMAGE_DIR_URL, STATIC_DIR, STATIC_DIR_URL
+from app.core.cdn import update_cdn_url
 from app.website.routes import website
 
-app = FastAPI(title="The Big Film Database")
+
+async def daily_cdn_update():
+    if settings.FILM_IMAGE_CDN_ENABLE:
+        while True:
+            print("Updating CDN URL...")
+            # Your function logic here
+            await update_cdn_url()
+            # Sleep for 24 hours (86400 seconds)
+            await asyncio.sleep(86400)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(daily_cdn_update())
+    try:
+        yield
+    finally:
+        task.cancel()
+        # Optionally wait for the task to finish cancelling
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+
+
+app = FastAPI(title="The Big Film Database", lifespan=lifespan)
 
 
 # Mount static files

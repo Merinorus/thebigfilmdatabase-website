@@ -12,7 +12,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from app.constants import PROJECT_DIR
 
 # Provide CDN base URLs that can serve images from the Open source film database Github repository.
-_DEFAULT_CDN_BASE_URLS = ["https://cdn.statically.io/gh/merinorus/Open-source-film-database/master/Images/"]
+_DEFAULT_CDN_BASE_URLS = [
+    "https://cdn.jsdelivr.net/gh/merinorus/Open-source-film-database@main/Images/",
+    "https://cdn.statically.io/gh/merinorus/Open-source-film-database/main/Images/",
+    "https://rawcdn.githack.com/Merinorus/Open-source-film-database/main/Images/",
+]
 
 
 class Settings(BaseSettings):
