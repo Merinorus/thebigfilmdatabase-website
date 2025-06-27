@@ -2,7 +2,6 @@
 
 from enum import IntEnum
 from typing import Any, Union
-from urllib.parse import urljoin
 
 from pydantic import (
     BaseModel,
@@ -14,12 +13,9 @@ from pydantic import (
 )
 from pydantic_core import CoreSchema, core_schema
 
-from app.config import settings
-from app.constants import FILM_IMAGE_DIR_URL
+from app.core.cdn import get_film_image_url
 from app.utils.barcode_writer import generate_dx_film_edge_barcode
 from app.utils.dx import dx_extract_to_two_part_dx_number
-
-image_cdn_base_url = settings.FILM_IMAGE_CDN_BASE_URLS[0]
 
 
 class DxCode(str):
@@ -156,10 +152,7 @@ class FilmInDB(BaseModel):
     @field_validator("picture", mode="after")
     def absolute_picture_url(cls, value):
         if value:
-            if settings.FILM_IMAGE_CDN_ENABLE:
-                value = str(urljoin(str(image_cdn_base_url), value))
-            else:
-                value = str(urljoin(str(FILM_IMAGE_DIR_URL), value))
+            value = get_film_image_url(value)
         return value
 
     @model_validator(mode="after")
