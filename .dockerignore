@@ -1,3 +1,13 @@
+# Ignore everything
+*
+
+# Whitelist: allow files and folders with a pattern starting with !
+!app
+!static
+!templates
+!log_conf.json
+!requirements*.txt
+
 ### Python template
 deploy/
 .idea/
