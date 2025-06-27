@@ -46,10 +46,6 @@
                 <strong>DX Film Edge barcodes :</strong><span title="DX Film Edge Barcode (old format, without frame number)">{{ film.dx_film_edge_barcode_svg() | safe }}</span> or <span title="DX Film Edge Barcode (frame number = 0)">{{ film.dx_film_edge_barcode_svg(0) | safe }}</span>
                 <br />
             {% endif %}
-            {% if film.og_film_or_information %}
-                <strong>Original Film or information :</strong> {{ film.og_film_or_information }}
-                <br />
-            {% endif %}
             {% if film.manufacturers %}
                 <strong>Manufacturer :</strong>
                 {% for manufacturer in film.manufacturers %}
