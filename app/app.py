@@ -7,14 +7,16 @@ from limits.strategies import SlidingWindowCounterRateLimiter
 
 from app.api.routes import api
 from app.config import settings
-from app.constants import STATIC_DIR
+from app.constants import FILM_IMAGE_DIR_URL, STATIC_DIR, STATIC_DIR_URL
 from app.website.routes import website
 
 app = FastAPI(title="The Big Film Database")
 
 
 # Mount static files
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount(STATIC_DIR_URL, StaticFiles(directory=STATIC_DIR), name="static")
+if not settings.FILM_IMAGE_CDN_ENABLE:
+    app.mount(FILM_IMAGE_DIR_URL, StaticFiles(directory=settings.FILM_IMAGE_DIR), name="film-images")
 
 # Rate limiter
 storage = MemoryStorage()

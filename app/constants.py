@@ -8,3 +8,7 @@ PROJECT_DIR = str(Path(os.path.dirname(__file__)).parent)
 APP_DIR = str(os.path.join(PROJECT_DIR, "app"))
 STATIC_DIR = str(os.path.join(PROJECT_DIR, "static"))
 TEMPLATE_DIR = str(os.path.join(PROJECT_DIR, "templates"))
+
+# URLS
+STATIC_DIR_URL = "/static/"
+FILM_IMAGE_DIR_URL = "/film-images/"
