@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bookworm AS runtimebase
+FROM python:3.13-slim-trixie AS runtimebase
 
 # You can periodically change this variable to enable rebuild, eg. for regular security updates
 ARG CACHEBUST=0
@@ -11,7 +11,7 @@ RUN apt-get update -y \
   && rm -rf /var/lib/apt/lists/* \
   && mkdir -p /usr/src/app/logs
 
-FROM python:3.11-bookworm AS buildbase
+FROM python:3.13-trixie AS buildbase
 
 # Prepare environment
 
