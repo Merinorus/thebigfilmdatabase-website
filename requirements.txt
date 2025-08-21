@@ -1,10 +1,10 @@
 # Application python requirements
 
-fastapi~=0.115.14
+fastapi~=0.116.1
 httpx~=0.28.1
 Jinja2~=3.1.6
-limits~=5.4.0
+limits~=5.5.0
 pydantic~=2.11.7
 pydantic-settings~=2.10.1
-uvicorn~=0.34.3
+uvicorn~=0.35.0
 zxing-cpp==2.3.0
