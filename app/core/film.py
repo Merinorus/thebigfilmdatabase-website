@@ -52,6 +52,24 @@ def get_by_url(url: str) -> FilmInDB | None:
     return result
 
 
+def get_random(limit: int = 1) -> list[FilmInDB]:
+    """Return a list of random films from the database.
+
+    Args:
+        limit (int, optional): Number of random films to return. Defaults to 1.
+
+    Returns:
+        list[FilmInDB]: The randomly selected films.
+    """
+    cursor = db_ram_connection.cursor()
+    cursor.execute("SELECT * FROM films ORDER BY RANDOM() LIMIT ?", [limit])
+    rows = cursor.fetchall()
+    column_names = [description[0] for description in cursor.description]
+    films = [dict(zip(column_names, row, strict=False)) for row in rows]
+    ta = TypeAdapter(list[HTMLFilmInDB])
+    return ta.validate_python(films)
+
+
 def search(
     dx_extract: str = None, dx_full: str = None, name: str = None, manufacturer: str = None, limit: int = MAX_RESULTS
 ) -> list[FilmInDB]:
