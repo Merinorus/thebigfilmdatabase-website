@@ -1,4 +1,7 @@
+import re
 import sqlite3
+from collections import Counter
+from functools import lru_cache
 
 from pydantic import TypeAdapter
 
@@ -9,6 +12,76 @@ from app.utils.url import url_safe_str
 
 # Max results allowed for a search request
 MAX_RESULTS = 101
+
+# Static, fully literal autocomplete queries per allowed column. Mapping to ready-made SQL strings
+# (instead of interpolating the column name) avoids any string-built SQL and keeps the column
+# strictly whitelisted.
+_AUTOCOMPLETE_QUERIES = {
+    "name": "SELECT name FROM films WHERE name MATCH ?",
+    "manufacturer": "SELECT manufacturer FROM films WHERE manufacturer MATCH ?",
+}
+AUTOCOMPLETE_COLUMNS = tuple(_AUTOCOMPLETE_QUERIES)
+# Max suggestions returned by an autocomplete request
+MAX_AUTOCOMPLETE_RESULTS = 11
+# Minimum length of the word being completed before we start suggesting
+MIN_AUTOCOMPLETE_PREFIX = 2
+# Match word tokens roughly like the FTS5 unicode61 tokenizer. \w is Unicode-aware in Python 3, so
+# this keeps Cyrillic, CJK, accented letters, etc. (a plain [^a-z0-9] split would drop them all).
+_AUTOCOMPLETE_WORD_RE = re.compile(r"\w+")
+# Generic words that carry little distinguishing value. They are still suggested, but their ranking
+# score is multiplied by AUTOCOMPLETE_STOPWORD_PENALTY so they fall below distinctive words (brands,
+# model names, ISO speeds...). Tweak this set freely; it is intentionally lowercase (any language).
+AUTOCOMPLETE_STOPWORDS = frozenset(
+    {
+        "and",
+        "asa",
+        "base",
+        "box",
+        "camera",
+        "code",
+        "color",
+        "colour",
+        "contrast",
+        "couleur",
+        "definition",
+        "din",
+        "direct",
+        "emulsion",
+        "film",
+        "films",
+        "for",
+        "foto",
+        "high",
+        "improved",
+        "iso",
+        "lab",
+        "line",
+        "motion",
+        "negative",
+        "new",
+        "no",
+        "photo",
+        "photography",
+        "picture",
+        "positive",
+        "print",
+        "prints",
+        "process",
+        "professional",
+        "roll",
+        "safety",
+        "sound",
+        "special",
+        "speed",
+        "super",
+        "type",
+        "ultra",
+        "version",
+        "тип",
+    }
+)
+# Multiplier applied to a stopword's score so it ranks low without being removed entirely.
+AUTOCOMPLETE_STOPWORD_PENALTY = 0.05
 
 cursor = db_ram_connection.cursor()
 
@@ -68,6 +141,97 @@ def get_random(limit: int = 1) -> list[FilmInDB]:
     films = [dict(zip(column_names, row, strict=False)) for row in rows]
     ta = TypeAdapter(list[HTMLFilmInDB])
     return ta.validate_python(films)
+
+
+def autocomplete(column: str, text: str, limit: int = MAX_AUTOCOMPLETE_RESULTS) -> list[str]:
+    """Suggest completions for the last word of ``text``, within a single FTS column.
+
+    Completion is context-aware: every already-typed word must appear in the same film row, so a
+    word is only suggested if a real film actually combines it with the previous words (eg. "kodak
+    ekt" -> "ektachrome", but "fujifilm ekt" -> nothing, since no such film exists). Suggestions are
+    ranked by how many matching films contain them (contextual frequency), most frequent first.
+
+    The minimum prefix length only applies to the very first word (no context yet). As soon as at
+    least one complete word precedes it, suggestions are returned regardless of the last word length,
+    including the "next word" case where the input ends with a space (eg. "kodak " -> "gold",
+    "portra"..., or "kodak p" -> "portra", "professional"...). Words already typed are never
+    re-suggested.
+
+    Args:
+        column (str): The FTS column to complete on. Must be one of AUTOCOMPLETE_COLUMNS.
+        text (str): The partial search input. Only its last word is completed.
+        limit (int, optional): Max number of suggestions. Defaults to MAX_AUTOCOMPLETE_RESULTS.
+
+    Raises:
+        ValueError: If ``column`` is not an allowed autocomplete column.
+
+    Returns:
+        list[str]: The suggested completed words, ranked by contextual frequency.
+    """
+    if column not in AUTOCOMPLETE_COLUMNS:
+        raise ValueError(f"Unsupported autocomplete column: {column!r}")
+
+    # Cache on the sanitized text so casing/whitespace variants collapse onto a single entry. The
+    # trailing space (which distinguishes the "next word" case) is preserved by the sanitizer. The
+    # in-RAM DB is read-only after startup, so cached results can never go stale.
+    return list(_autocomplete_cached(column, sanitize_fulltext_string(text), limit))
+
+
+@lru_cache(maxsize=2048)
+def _autocomplete_cached(column: str, sanitized: str, limit: int) -> tuple[str, ...]:
+    """Cached core of :func:`autocomplete`. Operates on already-sanitized text, returns a tuple.
+
+    A tuple is returned (and copied to a list by the caller) so the shared cached object can never be
+    mutated by a caller.
+    """
+    if not sanitized:
+        return ()
+    # A trailing space means the last word is finished: every token is context and we suggest the
+    # next word (empty prefix). Otherwise the last token is the prefix being typed.
+    tokens = sanitized.split()
+    if not tokens:
+        return ()
+    if sanitized.endswith(" "):
+        context_words, prefix = tokens, ""
+    else:
+        *context_words, prefix = tokens
+
+    # The minimum length gate only guards the first word; with context, any prefix (even empty) goes.
+    if not context_words and len(prefix) < MIN_AUTOCOMPLETE_PREFIX:
+        return ()
+
+    # Already-typed words must match exactly; only the last word (if any) is a prefix query.
+    match_param = " ".join([*context_words, prefix + "*"] if prefix else context_words)
+
+    cursor = db_ram_connection.cursor()
+    try:
+        cursor.execute(_AUTOCOMPLETE_QUERIES[column], [match_param])
+        rows = cursor.fetchall()
+    except sqlite3.OperationalError as e:
+        print(f"SQL Error detected in autocomplete: query will silently fail and return no result. Error detail:\n{e}")
+        return ()
+
+    # Count, per matching film, the distinct words that complete the prefix, skipping already-typed
+    # words (an empty prefix matches every word, so the skip is what surfaces genuinely new words).
+    typed_words = set(context_words)
+    counts: Counter[str] = Counter()
+    for (value,) in rows:
+        if not value:
+            continue
+        completing_words = {
+            word
+            for word in _AUTOCOMPLETE_WORD_RE.findall(value.lower())
+            if word.startswith(prefix) and word not in typed_words
+        }
+        counts.update(completing_words)
+
+    # Rank by contextual frequency, but demote generic stopwords so distinctive words surface first.
+    def _score(item: tuple[str, int]) -> float:
+        word, count = item
+        return count * (AUTOCOMPLETE_STOPWORD_PENALTY if word in AUTOCOMPLETE_STOPWORDS else 1.0)
+
+    ranked = sorted(counts.items(), key=_score, reverse=True)
+    return tuple(word for word, _ in ranked[:limit])
 
 
 def search(
