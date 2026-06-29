@@ -137,15 +137,15 @@ class FilmInDB(BaseModel):
         Returns:
             the DX film edge barcode, as SVG
         """
-        size_hint = 50
+        scale = -50
         if self.dx_extract and frame_number is not None:
             # With the zxing-cpp library, the width can be modified.
             # We want the two formats to have the same height.
             # The short format length is 23, the long format length is 32.
             # So this is a dubious computation to generate both image with the same height.
-            return generate_dx_film_edge_barcode(f"{self.dx_extract}/{frame_number}", size_hint * 32 // 23)
+            return generate_dx_film_edge_barcode(f"{self.dx_extract}/{frame_number}", scale * 32 // 23)
         elif self.dx_extract:
-            return generate_dx_film_edge_barcode(self.dx_extract, size_hint)
+            return generate_dx_film_edge_barcode(self.dx_extract, scale)
         else:
             return None
 
