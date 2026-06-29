@@ -19,3 +19,7 @@ class FilmResponse(Response):
 
 class FilmListResponse(Response):
     data: list[FilmInDB] = None
+
+
+class AutocompleteResponse(Response):
+    data: list[str] = []

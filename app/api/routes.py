@@ -3,9 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi.exceptions import HTTPException
 
-from app.api.schemas.response import BaseResponse, FilmListResponse, FilmResponse
+from app.api.schemas.response import AutocompleteResponse, BaseResponse, FilmListResponse, FilmResponse
 from app.core import film
-from app.core.film import MAX_RESULTS
+from app.core.film import MAX_AUTOCOMPLETE_RESULTS, MAX_RESULTS
 from app.core.schemas.query import SearchFilmQuery
 
 api = APIRouter(
@@ -39,6 +39,28 @@ async def random(
 ):
     films = film.get_random(limit=limit)
     return FilmListResponse(data=films)
+
+
+@api.get("/autocomplete/name", response_model=AutocompleteResponse)
+async def autocomplete_name(
+    q: Annotated[str, Query(max_length=255, description="Partial film name; only its last word is completed")],
+    limit: Annotated[
+        int, Query(ge=1, le=MAX_AUTOCOMPLETE_RESULTS, description="Max number of suggestions")
+    ] = MAX_AUTOCOMPLETE_RESULTS,
+):
+    suggestions = film.autocomplete(column="name", text=q, limit=limit)
+    return AutocompleteResponse(data=suggestions)
+
+
+@api.get("/autocomplete/manufacturer", response_model=AutocompleteResponse)
+async def autocomplete_manufacturer(
+    q: Annotated[str, Query(max_length=255, description="Partial manufacturer; only its last word is completed")],
+    limit: Annotated[
+        int, Query(ge=1, le=MAX_AUTOCOMPLETE_RESULTS, description="Max number of suggestions")
+    ] = MAX_AUTOCOMPLETE_RESULTS,
+):
+    suggestions = film.autocomplete(column="manufacturer", text=q, limit=limit)
+    return AutocompleteResponse(data=suggestions)
 
 
 @api.get("/film/{url_name}", response_model=FilmResponse, response_model_exclude_none=True)
