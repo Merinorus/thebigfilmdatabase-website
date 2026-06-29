@@ -79,7 +79,7 @@ const processFrame = function () {
             setTimeout(function () {
             if (code.format === "ITF") {
                 window.location.href = "search?dx_full=" + encodeURIComponent(code.text);
-            } else if (code.format === "DXFilmEdge") {
+            } else if (code.format === "DX Film Edge") {
                 window.location.href = "search?dx_number=" + encodeURIComponent(code.text);
             }
             }, 500);
