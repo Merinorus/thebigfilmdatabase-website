@@ -8,7 +8,7 @@ fail_fast: true
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.14.1"
+    rev: "v0.15.20"
     hooks:
       - id: ruff
         name: Code linter (Ruff)
@@ -17,7 +17,7 @@ repos:
         name: Code formatter (Ruff)
 
   - repo: https://github.com/pycqa/bandit
-    rev: "1.8.6"
+    rev: "1.9.4"
     hooks:
       - id: bandit
         name: Code security analysis (bandit)
@@ -27,7 +27,7 @@ repos:
         # stages: [push]  # Uncomment to temporarily accelerate local commits
 
   - repo: https://github.com/djlint/djlint
-    rev: v1.36.4
+    rev: v1.39.5
     hooks:
       - id: djlint
         name: djLint
