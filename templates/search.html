@@ -80,7 +80,9 @@
             <br />
         </footer>
     {% endfor %}
-    {% if not films %}<p>No results found</p>{% endif %}
+    {% if not films %}
+        <p>No results found</p>
+    {% endif %}
     {% if film_type %}
         <p>Manufacturer and film type (calculated from DX code, not very accurate...): {{ film_type }}</p>
     {% endif %}
