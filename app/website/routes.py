@@ -1,5 +1,4 @@
 import os
-import random
 from collections.abc import Callable
 from typing import Annotated
 
@@ -49,8 +48,7 @@ async def favicon():
 @website.get("/", response_class=HTMLResponse)
 async def index_page(request: Request):
     # Get a random film to populate the home page
-    random_id = random.randrange(0, total_count, 1)
-    result = film.get_by_id(random_id)
+    result = film.get_random(limit=1)[0]
 
     return templates.TemplateResponse(
         name="index.html",

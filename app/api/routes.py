@@ -1,10 +1,11 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, Query
 from fastapi.exceptions import HTTPException
 
 from app.api.schemas.response import BaseResponse, FilmListResponse, FilmResponse
 from app.core import film
+from app.core.film import MAX_RESULTS
 from app.core.schemas.query import SearchFilmQuery
 
 api = APIRouter(
@@ -29,6 +30,14 @@ async def search(query: Annotated[SearchFilmQuery, Depends(SearchFilmQuery)]):
         limit=query.limit,
     )
 
+    return FilmListResponse(data=films)
+
+
+@api.get("/random", response_model=FilmListResponse, response_model_exclude_none=True)
+async def random(
+    limit: Annotated[int, Query(ge=1, le=MAX_RESULTS, description="Number of random films to return")] = 1,
+):
+    films = film.get_random(limit=limit)
     return FilmListResponse(data=films)
 
 
