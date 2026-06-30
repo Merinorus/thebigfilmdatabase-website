@@ -36,11 +36,12 @@ async def update_cdn_url():
         for base_url in settings.FILM_IMAGE_CDN_BASE_URLS:
             image_url = urljoin(str(base_url), image)
             try:
-                response = await client.head(image_url, timeout=5.0)
+                response = await client.get(image_url, timeout=5.0, follow_redirects=True)
                 response.raise_for_status()
                 if base_url != _image_cdn_base_url:
-                    logger.warning(f"Could not get images from CDN '{_image_cdn_base_url}'. Switching to '{base_url}'.")
+                    logger.warning(f"Switching CDN base URL from '{_image_cdn_base_url}' to '{base_url}'.")
                     _image_cdn_base_url = base_url
                 return
-            except (httpx.RequestError, httpx.HTTPStatusError):
+            except httpx.HTTPError as e:
+                logger.warning(f"Error with this CDN: {base_url}\n{e}")
                 continue

@@ -19,11 +19,10 @@ from app.website.routes import website
 async def daily_cdn_update():
     if settings.FILM_IMAGE_CDN_ENABLE:
         while True:
-            print("Updating CDN URL...")
-            # Your function logic here
+            # Check the CDN availability every 30 minutes,
+            # and rotate on another one if it is unavailable.
             await update_cdn_url()
-            # Sleep for 24 hours (86400 seconds)
-            await asyncio.sleep(86400)
+            await asyncio.sleep(1800)
 
 
 @asynccontextmanager
