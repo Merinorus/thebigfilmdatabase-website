@@ -17,6 +17,12 @@ from app.utils.url import url_safe_str
 # Configure the Jinja2 environment to render HTMl templates
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 
+# Short freshness on HTML pages to absorb traffic spikes via the CDN, with a long stale window for
+# instant serving. Kept short (vs the data) because HTML embeds the front-end (asset refs, layout),
+# so a short TTL lets front deploys propagate quickly. The "/" home page is left uncached on purpose:
+# it shows a random film, so caching it would freeze the draw.
+HTML_CACHE_CONTROL = "public, max-age=600, stale-while-revalidate=2592000"
+
 
 class NoDocumentationRoute(APIRoute):
     """Exclude routes from OpenAPI documentation.
@@ -58,7 +64,9 @@ async def index_page(request: Request):
 
 @website.get("/help", response_class=HTMLResponse)
 async def help_page(request: Request):
-    return templates.TemplateResponse(name="help.html", context={"request": request})
+    return templates.TemplateResponse(
+        name="help.html", context={"request": request}, headers={"Cache-Control": HTML_CACHE_CONTROL}
+    )
 
 
 @website.get("/search", response_class=HTMLResponse)
@@ -93,6 +101,7 @@ async def search(request: Request, query: Annotated[SearchFilmQuery, Depends(Sea
             "film_type": film_type,
             "too_many_results": too_many_results,
         },
+        headers={"Cache-Control": HTML_CACHE_CONTROL},
     )
 
 
@@ -104,5 +113,7 @@ async def read_film(
     film_type = get_film_type(result.dx_extract) if result and result.dx_extract else None
 
     return templates.TemplateResponse(
-        name="film.html", context={"request": request, "film": result, "film_type": film_type}
+        name="film.html",
+        context={"request": request, "film": result, "film_type": film_type},
+        headers={"Cache-Control": HTML_CACHE_CONTROL},
     )
