@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     RATE_LIMITER_MAX_REQUESTS: NonNegativeInt = Field(default=30)
     RATE_LIMITER_TIME_WINDOW: NonNegativeFloat = Field(default=30)
 
+    TRUSTED_PROXIES: str = Field(default="")
+
     model_config = SettingsConfigDict(extra="ignore", env_file=".env", case_sensitive=True)
 
 

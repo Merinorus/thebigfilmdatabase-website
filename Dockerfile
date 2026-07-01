@@ -99,7 +99,7 @@ EXPOSE 3500
 
 # Launch the application
 ENTRYPOINT []
-CMD ["uvicorn", "app.app:app", "--host", "0.0.0.0", "--port", "3500", "--log-config=log_conf.json"]
+CMD ["python", "-m", "app.run"]
 
 # Regular health check
 HEALTHCHECK --interval=10s --timeout=3s --retries=3 --start-period=10s CMD python -m app.healthcheck
