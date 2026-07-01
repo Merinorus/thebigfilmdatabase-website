@@ -57,6 +57,7 @@ async def index_page(request: Request):
     result = film.get_random(limit=1)[0]
 
     return templates.TemplateResponse(
+        request=request,
         name="index.html",
         context={"request": request, "film": result, "url_safe_str": url_safe_str, "total_count": total_count},
     )
@@ -65,7 +66,7 @@ async def index_page(request: Request):
 @website.get("/help", response_class=HTMLResponse)
 async def help_page(request: Request):
     return templates.TemplateResponse(
-        name="help.html", context={"request": request}, headers={"Cache-Control": HTML_CACHE_CONTROL}
+        request=request, name="help.html", context={"request": request}, headers={"Cache-Control": HTML_CACHE_CONTROL}
     )
 
 
@@ -92,6 +93,7 @@ async def search(request: Request, query: Annotated[SearchFilmQuery, Depends(Sea
         too_many_results = True
 
     return templates.TemplateResponse(
+        request=request,
         name="search.html",
         context={
             "request": request,
@@ -113,6 +115,7 @@ async def read_film(
     film_type = get_film_type(result.dx_extract) if result and result.dx_extract else None
 
     return templates.TemplateResponse(
+        request=request,
         name="film.html",
         context={"request": request, "film": result, "film_type": film_type},
         headers={"Cache-Control": HTML_CACHE_CONTROL},
