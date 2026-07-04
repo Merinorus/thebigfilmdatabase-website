@@ -38,6 +38,7 @@ async def search(response: Response, query: Annotated[SearchFilmQuery, Depends(S
         name=query.name,
         manufacturer=query.manufacturer,
         limit=query.limit,
+        skip=query.skip,
     )
 
     return FilmListResponse(data=films)

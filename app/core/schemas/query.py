@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from fastapi.exceptions import RequestErrorModel, RequestValidationError
-from pydantic import BaseModel, Field, PositiveInt, ValidationError, field_validator, model_validator
+from pydantic import BaseModel, Field, NonNegativeInt, PositiveInt, ValidationError, field_validator, model_validator
 
 from app.core.film import MAX_RESULTS
 from app.utils.dx import parse_dx_code, two_parts_dx_number_to_dx_extract
@@ -55,6 +55,7 @@ class SearchFilmQuery(QueryModel):
     name: str | None = Field(max_length=255, default=None)
     manufacturer: str | None = Field(max_length=255, default=None)
     limit: PositiveInt = Field(le=MAX_RESULTS, default=100)
+    skip: NonNegativeInt = Field(default=0, description="Number of results to skip (for scroll/infinite pagination)")
 
     @model_validator(mode="before")
     @classmethod

@@ -9,6 +9,7 @@ from pydantic import TypeAdapter
 
 from app.config import settings
 from app.core.schemas.film import HTMLFilmInDB
+from app.utils.sql import sanitize_fulltext_string
 from app.utils.url import generate_unique_url
 
 
@@ -101,6 +102,21 @@ def update_db():
     # Charger le DataFrame dans SQLite
     df.to_sql(name=DB_TABLE_NAME, con=db_file_connection, if_exists="append", index=False)
 
+    db_file_connection.commit()
+
+    # Precomputed ranking table: normalized forms of `name`, joined by rowid at search time. `films` is
+    # an FTS5 virtual table (no extra columns allowed), so the normalized values live here. Computing the
+    # unicode-aware lower()/sanitize() once at build time keeps the search relevance ranking in pure SQL
+    # (no per-row Python callback), while the shipped DB stays read-only.
+    cursor.execute("DROP TABLE IF EXISTS film_rank")
+    cursor.execute("CREATE TABLE film_rank (rowid INTEGER PRIMARY KEY, name_lower TEXT, name_sanitized TEXT)")
+    cursor.executemany(
+        "INSERT INTO film_rank (rowid, name_lower, name_sanitized) VALUES (?, ?, ?)",
+        (
+            (rowid, (name or "").lower(), sanitize_fulltext_string(name or ""))
+            for rowid, name in cursor.execute("SELECT rowid, name FROM films").fetchall()
+        ),
+    )
     db_file_connection.commit()
 
     # Check database integrity and film column format

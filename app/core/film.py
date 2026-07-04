@@ -10,7 +10,7 @@ from app.core.schemas.film import FilmInDB, HTMLFilmInDB
 from app.utils.sql import fulltext_search_param, sanitize_fulltext_string
 from app.utils.url import url_safe_str
 
-# Max results allowed for a search request
+# Max results returned in a single search page (i.e. max value of `limit`)
 MAX_RESULTS = 101
 
 # Static, fully literal autocomplete queries per allowed column. Mapping to ready-made SQL strings
@@ -235,7 +235,12 @@ def _autocomplete_cached(column: str, sanitized: str, limit: int) -> tuple[str, 
 
 
 def search(
-    dx_extract: str = None, dx_full: str = None, name: str = None, manufacturer: str = None, limit: int = MAX_RESULTS
+    dx_extract: str = None,
+    dx_full: str = None,
+    name: str = None,
+    manufacturer: str = None,
+    limit: int = MAX_RESULTS,
+    skip: int = 0,
 ) -> list[FilmInDB]:
     """Return the list of films in database, given the search criterias. At least one must be given.
 
@@ -244,6 +249,8 @@ def search(
         dx_full (str, optional): DX full code (6 digits, with leading zeros). Defaults to None.
         name (str, optional): Film name. Defaults to None.
         manufacturer (str, optional): Film manufacturer. Defaults to None.
+        limit (int, optional): Max number of films to return. Defaults to MAX_RESULTS.
+        skip (int, optional): Number of leading results to skip, for scroll pagination. Defaults to 0.
 
     Raises:
         ValueError: If no search parameter is given
@@ -251,7 +258,13 @@ def search(
     Returns:
         list[FilmInDB]: The found films in database
     """
-    db_query = "SELECT * FROM films WHERE 1=1"
+    # Pure name searches rank on the precomputed `film_rank` table (normalized name forms), joined by
+    # rowid. Other searches don't need it, so we only pay the join when it is actually used.
+    rank_by_name = bool(name) and not any([dx_extract, dx_full, manufacturer])
+    if rank_by_name:
+        db_query = "SELECT f.* FROM films f JOIN film_rank r ON r.rowid = f.rowid WHERE 1=1"
+    else:
+        db_query = "SELECT * FROM films WHERE 1=1"
     params = []
     guessed_dx_extract = None
 
@@ -277,16 +290,44 @@ def search(
         db_query += " AND manufacturer MATCH ?"
         params.append(fulltext_search_param(manufacturer))
     if params:
-        order_by_params = []
+        # Relevance ranking, expressed directly in SQL so it applies BEFORE LIMIT/OFFSET. This lets
+        # SQLite return exactly the requested page already ranked, so only those rows are validated by
+        # Pydantic. The clauses (highest priority first) mirror the former in-memory sort exactly.
+        relevance_order = []
+        relevance_params = []
+
+        # DX full: exact match first, then same code ignoring the trailing half-frame digit.
+        if dx_full:
+            relevance_order += ["(dx_full = ?) DESC", "(substr(dx_full, 1, length(?)) = ?) DESC"]
+            relevance_params += [dx_full, dx_full[:-1], dx_full[:-1]]
+
+        # Pure name search: rank exact > starts-with (case-sensitive) > contains > starts-with and
+        # contains ignoring special characters. The normalized name forms come from the precomputed
+        # `film_rank` columns (unicode-correct), and the searched term is normalized once here in Python.
+        if rank_by_name:
+            q_lower = name.lower()
+            q_sanitized = sanitize_fulltext_string(name)
+            relevance_order += [
+                "(r.name_lower = ?) DESC",
+                "(substr(f.name, 1, length(?)) = ?) DESC",
+                "(instr(r.name_lower, ?) > 0) DESC",
+                "(instr(r.name_sanitized, ?) = 1) DESC",
+                "(instr(r.name_sanitized, ?) > 0) DESC",
+            ]
+            relevance_params += [q_lower, name, name, q_lower, q_sanitized, q_sanitized]
+
+        order_by_params = list(relevance_order)
         if dx_extract or dx_full:
             order_by_params.append("case when dx_full is null then 1 else 0 end, dx_full, dx_extract")
         if manufacturer:
             order_by_params.append("manufacturer")
-        order_by_params.append("name, rowid")
-        db_query += " ORDER BY " + ", ".join(order_by_params) + " LIMIT ?"
-        # Do not crop results too much earlier, otherwise the sort would return unrelevant results
-        query_limit = min(10 * limit, MAX_RESULTS)
-        params.append(query_limit)
+        # Qualify the row-identity tie-break: with the film_rank join, a bare `rowid` is ambiguous.
+        order_by_params.append("f.name, f.rowid" if rank_by_name else "name, rowid")
+
+        db_query += " ORDER BY " + ", ".join(order_by_params) + " LIMIT ? OFFSET ?"
+        # Order matters: WHERE params first, then the ORDER BY relevance params, then LIMIT/OFFSET.
+        params.extend(relevance_params)
+        params.extend([limit, skip])
         try:
             cursor.execute(db_query, params)
             rows = cursor.fetchall()
@@ -302,30 +343,5 @@ def search(
         raise ValueError("No search parameters provided.")
 
     ta = TypeAdapter(list[HTMLFilmInDB])
-    models = ta.validate_python(films)
-
-    # Intelligent sort by name if only this has been provided
-    if name and not any([dx_extract, dx_full, manufacturer]):
-        # contains the exact provided name, ignoring the special characters
-        models.sort(key=lambda x: sanitize_fulltext_string(name) in sanitize_fulltext_string(x.name), reverse=True)
-        # starts with the provided name, ignoring the special characters
-        models.sort(
-            key=lambda x: sanitize_fulltext_string(x.name).startswith(sanitize_fulltext_string(name)),
-            reverse=True,
-        )
-        # contains the exact provided name
-        models.sort(key=lambda x: name.lower() in str(x.name).lower(), reverse=True)
-        # starts with the exact provided name
-        models.sort(key=lambda x: str(x.name).startswith(name), reverse=True)
-        # is exactly the provided name
-        models.sort(key=lambda x: str(x.name).lower() == name.lower(), reverse=True)
-
-    # If a DX full number is provided and matches several films (eg: 012514 -> 012514, 012513, 912513)
-    if dx_full:
-        # is the provided DX Full number, except the last digit (number of full-frame exposures)
-        models.sort(key=lambda x: x.dx_full.startswith(dx_full[:-1]), reverse=True)
-        # is exactly the provided DX Full number
-        models.sort(key=lambda x: x.dx_full == dx_full, reverse=True)
-
-    # Limit returned results
-    return models[:limit]
+    # SQLite already returned exactly the requested page (ranked, then LIMIT/OFFSET), so this is the page.
+    return ta.validate_python(films)
