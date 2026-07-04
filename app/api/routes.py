@@ -24,7 +24,10 @@ AUTOCOMPLETE_CACHE_CONTROL = "public, max-age=86400, stale-while-revalidate=2592
 SEARCH_FILM_CACHE_CONTROL = "public, max-age=600, stale-while-revalidate=2592000"
 
 
-@api.get("/health")
+# Also allow HEAD: uptime monitors (UptimeRobot...) probe with HEAD, and FastAPI — unlike plain
+# Starlette — does not auto-add HEAD to GET routes (see fastapi/fastapi#1773), so a bare @api.get
+# would answer HEAD with 405.
+@api.api_route("/health", methods=["GET", "HEAD"])
 async def healthcheck():
     return BaseResponse()
 
