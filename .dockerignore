@@ -6,7 +6,8 @@
 !static
 !templates
 !log_conf.json
-!requirements*.txt
+!pyproject.toml
+!uv.lock
 
 ### Python template
 deploy/

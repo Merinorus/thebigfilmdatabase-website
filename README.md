@@ -9,31 +9,42 @@ You can find the original author website's source code with its database and his
 
 ## Install and run locally
 
-In a python virtual environment, install the required packages:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then sync the project.
+Python 3.13 or newer is required; uv can download a compatible version if needed.
 
 ```sh
-pip install -r requirements-install.txt
-
+uv sync
 ```
 
-Then, update the local database from the Film CSV file:
+Create the SQLite database from the film CSV (only needed initially or to refresh it):
 
 ```sh
-git clone https://github.com/dxdatabase/Open-source-film-database Open-source-film-database
-python -m app.install
+git clone https://github.com/Merinorus/Open-source-film-database Open-source-film-database
+uv run --group install python -m app.install
 ```
 
-Lastly, start the server, either:
+Start the server:
 
 ```sh
-python -m app
+uv run python -m app
 ```
 
-Or with uvicorn (ASGI web server):
+Or with automatic reload:
 
 ```sh
-uvicorn app.app:app --reload --port 3500
+uv run uvicorn app.app:app --reload --port 3500
 ```
+
+Run the development checks:
+
+```sh
+uv run pre-commit run --all-files
+```
+
+Dependencies are declared in `pyproject.toml` and locked in `uv.lock`. Commit both
+when changing dependencies with `uv add`. The default `dev` group contains
+pre-commit; the optional `install` group contains NumPy and pandas for importing
+the CSV. Production uses `uv sync --locked --no-dev`.
 
 ### Build with Docker
 ```sh

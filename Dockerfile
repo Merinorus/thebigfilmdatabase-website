@@ -1,5 +1,7 @@
 FROM python:3.13-slim-trixie AS runtimebase
 
+ENV PATH="/opt/venv/bin:$PATH"
+
 # You can periodically change this variable to enable rebuild, eg. for regular security updates
 ARG CACHEBUST=0
 
@@ -22,27 +24,25 @@ RUN apt-get update -y \
 
 FROM buildbase AS buildstage
 
-# Dependencies needed for build only
-RUN apt-get update -y \
-  && apt-get install --no-install-recommends -yq build-essential python3-dev git \
-  && pip3 install --no-cache-dir --upgrade pip \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+COPY --from=ghcr.io/astral-sh/uv:0.12 /uv /usr/local/bin/uv
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_PYTHON_DOWNLOADS=never \
+    PATH="/opt/venv/bin:$PATH"
+WORKDIR /usr/src
 
 # Install dependencies
-COPY ./requirements.txt /usr/src/app/requirements.txt
+COPY pyproject.toml uv.lock /usr/src/
 
 # You can periodically change this variable to enable rebuild, eg. for regular security updates
 ARG CACHEBUST=0
-RUN pip3 install --no-cache-dir -r /usr/src/app/requirements.txt
+RUN uv sync --locked --no-dev --no-cache
 
 FROM buildstage AS installstage
 
 WORKDIR /usr/src
 
 # Install dependencies
-COPY ./requirements-install.txt /usr/src/app/requirements-install.txt
-RUN pip3 install --no-cache-dir -r /usr/src/app/requirements-install.txt
+RUN uv sync --locked --no-dev --group install --no-cache
 COPY app /usr/src/app
 
 # Create the SQLite database from the Film CSV database
@@ -54,8 +54,7 @@ RUN python -m app.install
 FROM buildstage AS buildstage-dev
 
 # Install additional dependencies for development & testing
-COPY ./requirements-dev.txt /usr/src/app/requirements-dev.txt
-RUN pip3 install --no-cache-dir -r /usr/src/app/requirements-dev.txt
+RUN uv sync --locked --no-cache
 
 
 FROM runtimebase AS local-image
@@ -67,8 +66,7 @@ RUN apt-get update -y \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy dependencies to dev image
-COPY --from=buildstage-dev /usr/local/lib /usr/local/lib
-COPY --from=buildstage-dev /usr/local/bin /usr/local/bin
+COPY --from=buildstage-dev /opt/venv /opt/venv
 COPY --from=installstage /usr/src/data/film_database.db /usr/src/data/film_database.db
 
 # Copy all the source code (including tests)
@@ -76,13 +74,13 @@ COPY --from=installstage /usr/src/data/film_database.db /usr/src/data/film_datab
 COPY . /usr/src
 
 # Launch the application
-ENTRYPOINT ["python", "-m", "app"]
+WORKDIR /usr/src
+ENTRYPOINT ["python", "-m", "app.run"]
 
 FROM runtimebase AS runtime-image
 
 # Copy dependencies to runtime image
-COPY --from=buildstage /usr/local/lib /usr/local/lib
-COPY --from=buildstage /usr/local/bin /usr/local/bin
+COPY --from=buildstage /opt/venv /opt/venv
 COPY --from=installstage /usr/src/data/film_database.db /usr/src/data/film_database.db
 
 # Expose API port 3500
