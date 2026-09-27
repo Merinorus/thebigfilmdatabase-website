@@ -55,6 +55,22 @@ async def random(
     return FilmListResponse(data=films)
 
 
+@api.get("/autocomplete", response_model=AutocompleteResponse)
+async def autocomplete_search(
+    response: Response,
+    q: Annotated[
+        str,
+        Query(max_length=255, description="Search name, manufacturer and distributor; only the last word is completed"),
+    ],
+    limit: Annotated[
+        int, Query(ge=1, le=MAX_AUTOCOMPLETE_RESULTS, description="Max number of suggestions")
+    ] = MAX_AUTOCOMPLETE_RESULTS,
+):
+    response.headers["Cache-Control"] = AUTOCOMPLETE_CACHE_CONTROL
+    suggestions = film.autocomplete(column="search", text=q, limit=limit)
+    return AutocompleteResponse(data=suggestions)
+
+
 @api.get("/autocomplete/name", response_model=AutocompleteResponse)
 async def autocomplete_name(
     response: Response,

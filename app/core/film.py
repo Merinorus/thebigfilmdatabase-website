@@ -13,12 +13,12 @@ from app.utils.url import url_safe_str
 # Max results allowed for a search request
 MAX_RESULTS = 101
 
-# Static, fully literal autocomplete queries per allowed column. Mapping to ready-made SQL strings
-# (instead of interpolating the column name) avoids any string-built SQL and keeps the column
-# strictly whitelisted.
+# Literal queries for each autocomplete scope keep the searched columns whitelisted.
 _AUTOCOMPLETE_QUERIES = {
     "name": "SELECT name FROM films WHERE name MATCH ?",
     "manufacturer": "SELECT manufacturer FROM films WHERE manufacturer MATCH ?",
+    "search": "SELECT name, manufacturer, distributor FROM films "
+    "WHERE films MATCH ('{name manufacturer distributor} : (' || ? || ')')",
 }
 AUTOCOMPLETE_COLUMNS = tuple(_AUTOCOMPLETE_QUERIES)
 # Max suggestions returned by an autocomplete request
@@ -144,7 +144,7 @@ def get_random(limit: int = 1) -> list[FilmInDB]:
 
 
 def autocomplete(column: str, text: str, limit: int = MAX_AUTOCOMPLETE_RESULTS) -> list[str]:
-    """Suggest completions for the last word of ``text``, within a single FTS column.
+    """Suggest completions within one column or across name, manufacturer and distributor.
 
     Completion is context-aware: every already-typed word must appear in the same film row, so a
     word is only suggested if a real film actually combines it with the previous words (eg. "kodak
@@ -158,7 +158,7 @@ def autocomplete(column: str, text: str, limit: int = MAX_AUTOCOMPLETE_RESULTS) 
     re-suggested.
 
     Args:
-        column (str): The FTS column to complete on. Must be one of AUTOCOMPLETE_COLUMNS.
+        column (str): An AUTOCOMPLETE_COLUMNS entry; 'search' combines the three identity columns.
         text (str): The partial search input. Only its last word is completed.
         limit (int, optional): Max number of suggestions. Defaults to MAX_AUTOCOMPLETE_RESULTS.
 
@@ -189,6 +189,9 @@ def _autocomplete_cached(column: str, sanitized: str, limit: int) -> tuple[str, 
     # A trailing space means the last word is finished: every token is context and we suggest the
     # next word (empty prefix). Otherwise the last token is the prefix being typed.
     tokens = sanitized.split()
+    if column == "search":
+        # Match the combined search's literal word handling, without exposing FTS operators.
+        tokens = re.findall(r"[^\W_]+", sanitized, flags=re.UNICODE)
     if not tokens:
         return ()
     if sanitized.endswith(" "):
@@ -202,6 +205,10 @@ def _autocomplete_cached(column: str, sanitized: str, limit: int) -> tuple[str, 
 
     # Already-typed words must match exactly; only the last word (if any) is a prefix query.
     match_param = " ".join([*context_words, prefix + "*"] if prefix else context_words)
+    if column == "search":
+        match_param = " AND ".join(f'"{word}"' for word in [*context_words, *([prefix] if prefix else [])])
+        if prefix:
+            match_param += "*"
 
     cursor = db_ram_connection.cursor()
     try:
@@ -215,11 +222,12 @@ def _autocomplete_cached(column: str, sanitized: str, limit: int) -> tuple[str, 
     # words (an empty prefix matches every word, so the skip is what surfaces genuinely new words).
     typed_words = set(context_words)
     counts: Counter[str] = Counter()
-    for (value,) in rows:
-        if not value:
-            continue
+    for row in rows:
+        # A word repeated across columns still counts only once for this film.
         completing_words = {
             word
+            for value in row
+            if value
             for word in _AUTOCOMPLETE_WORD_RE.findall(value.lower())
             if word.startswith(prefix) and word not in typed_words
         }
