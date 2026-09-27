@@ -83,6 +83,7 @@ async def search(request: Request, query: Annotated[SearchFilmQuery, Depends(Sea
             dx_full=query.dx_full,
             name=query.name,
             manufacturer=query.manufacturer,
+            q=query.q,
             limit=query.limit,
         )
     except ValueError:

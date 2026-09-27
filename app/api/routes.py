@@ -40,6 +40,7 @@ async def search(response: Response, query: Annotated[SearchFilmQuery, Depends(S
         dx_full=query.dx_full,
         name=query.name,
         manufacturer=query.manufacturer,
+        q=query.q,
         limit=query.limit,
     )
 

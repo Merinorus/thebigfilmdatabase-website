@@ -54,6 +54,11 @@ class SearchFilmQuery(QueryModel):
     dx_full: str | None = Field(max_length=6, default=None)  # Eg: "025943"
     name: str | None = Field(max_length=255, default=None)
     manufacturer: str | None = Field(max_length=255, default=None)
+    q: str | None = Field(
+        max_length=255,
+        default=None,
+        description="Search name, manufacturer, distributor and notes. All words must match; only the last word is completed.",
+    )
     limit: PositiveInt = Field(le=MAX_RESULTS, default=100)
 
     @model_validator(mode="before")

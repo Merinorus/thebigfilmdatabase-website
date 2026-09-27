@@ -1,4 +1,14 @@
+import re
+
 from app.utils.string import _remove_double_spaces
+
+
+def combined_search_param(text: str) -> str | None:
+    """Build literal AND terms, completing only the last word; ignore punctuation."""
+    words = re.findall(r"[^\W_]+", text, flags=re.UNICODE)
+    if not words:
+        return None
+    return " AND ".join(f'"{word}"' for word in words) + "*"
 
 
 def sanitize_fulltext_string(text: str) -> str:

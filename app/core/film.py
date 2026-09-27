@@ -7,7 +7,7 @@ from pydantic import TypeAdapter
 
 from app.core.database import db_ram_connection
 from app.core.schemas.film import FilmInDB, HTMLFilmInDB
-from app.utils.sql import fulltext_search_param, sanitize_fulltext_string
+from app.utils.sql import combined_search_param, fulltext_search_param, sanitize_fulltext_string
 from app.utils.url import url_safe_str
 
 # Max results allowed for a search request
@@ -235,7 +235,13 @@ def _autocomplete_cached(column: str, sanitized: str, limit: int) -> tuple[str, 
 
 
 def search(
-    dx_extract: str = None, dx_full: str = None, name: str = None, manufacturer: str = None, limit: int = MAX_RESULTS
+    dx_extract: str = None,
+    dx_full: str = None,
+    name: str = None,
+    manufacturer: str = None,
+    limit: int = MAX_RESULTS,
+    *,
+    q: str | None = None,
 ) -> list[FilmInDB]:
     """Return the list of films in database, given the search criterias. At least one must be given.
 
@@ -244,6 +250,7 @@ def search(
         dx_full (str, optional): DX full code (6 digits, with leading zeros). Defaults to None.
         name (str, optional): Film name. Defaults to None.
         manufacturer (str, optional): Film manufacturer. Defaults to None.
+        q (str, optional): Words searched across name, manufacturer, distributor and notes ("og_film_or_information").
 
     Raises:
         ValueError: If no search parameter is given
@@ -254,6 +261,12 @@ def search(
     db_query = "SELECT * FROM films WHERE 1=1"
     params = []
     guessed_dx_extract = None
+    match_terms = combined_search_param(q) if q is not None else None
+    if q is not None and match_terms is None:
+        return []
+    if match_terms:
+        db_query += " AND films MATCH ?"
+        params.append(f"{{name manufacturer distributor og_film_or_information}} : ({match_terms})")
 
     if dx_extract:
         dx_extract = dx_extract.zfill(4)
@@ -278,14 +291,26 @@ def search(
         params.append(fulltext_search_param(manufacturer))
     if params:
         order_by_params = []
-        if dx_extract or dx_full:
+        if match_terms:
+            # Rank all candidates before LIMIT: name-only matches, identity-column matches,
+            # then matches requiring notes. Column weights follow the FTS table schema.
+            order_by_params.extend(
+                [
+                    "CASE WHEN rowid IN (SELECT rowid FROM films WHERE name MATCH ?) THEN 0 "
+                    "WHEN rowid IN (SELECT rowid FROM films WHERE films MATCH ?) THEN 1 ELSE 2 END",
+                    # Weights in FTS column order: name=10, notes=1, manufacturer=5, distributor=3; others=0.
+                    "bm25(films, 0, 0, 10, 1, 5, 0, 0, 0, 0, 3, 0, 0, 0)",
+                ]
+            )
+            params.extend([match_terms, f"{{name manufacturer distributor}} : ({match_terms})"])
+        elif dx_extract or dx_full:
             order_by_params.append("case when dx_full is null then 1 else 0 end, dx_full, dx_extract")
-        if manufacturer:
+        if manufacturer and not match_terms:
             order_by_params.append("manufacturer")
         order_by_params.append("name, rowid")
         db_query += " ORDER BY " + ", ".join(order_by_params) + " LIMIT ?"
         # Do not crop results too much earlier, otherwise the sort would return unrelevant results
-        query_limit = min(10 * limit, MAX_RESULTS)
+        query_limit = min(limit, MAX_RESULTS) if match_terms else min(10 * limit, MAX_RESULTS)
         params.append(query_limit)
         try:
             cursor.execute(db_query, params)
@@ -305,7 +330,7 @@ def search(
     models = ta.validate_python(films)
 
     # Intelligent sort by name if only this has been provided
-    if name and not any([dx_extract, dx_full, manufacturer]):
+    if name and not any([dx_extract, dx_full, manufacturer, q]):
         # contains the exact provided name, ignoring the special characters
         models.sort(key=lambda x: sanitize_fulltext_string(name) in sanitize_fulltext_string(x.name), reverse=True)
         # starts with the provided name, ignoring the special characters
@@ -321,7 +346,7 @@ def search(
         models.sort(key=lambda x: str(x.name).lower() == name.lower(), reverse=True)
 
     # If a DX full number is provided and matches several films (eg: 012514 -> 012514, 012513, 912513)
-    if dx_full:
+    if dx_full and not match_terms:
         # is the provided DX Full number, except the last digit (number of full-frame exposures)
         models.sort(key=lambda x: x.dx_full.startswith(dx_full[:-1]), reverse=True)
         # is exactly the provided DX Full number
