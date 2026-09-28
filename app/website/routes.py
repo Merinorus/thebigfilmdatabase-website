@@ -75,7 +75,12 @@ async def search(
     request: Request,
     query: Annotated[SearchFilmQuery, Depends(SearchFilmQuery)],
     page: Annotated[int, Query(ge=1)] = 1,
+    tbfd_film_query: Annotated[str | None, Query(max_length=255)] = None,
 ):
+    # A site-specific form name avoids sharing generic "q" browser history.
+    # Keep existing q URLs working; the API continues to use q as well.
+    if query.q is None and tbfd_film_query is not None:
+        query.q = tbfd_film_query.strip() or None
     film_type = None
 
     if query.dx_extract or query.dx_full:

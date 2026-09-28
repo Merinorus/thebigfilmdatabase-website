@@ -59,11 +59,12 @@ async def test_catalogue_can_be_crawled_without_javascript(add_film, website_app
 
 
 @pytest.mark.anyio
-async def test_page_links_preserve_encoded_filters(add_film, website_app):
+@pytest.mark.parametrize("query_parameter", ["q", "tbfd_film_query"])
+async def test_page_links_preserve_encoded_filters(add_film, website_app, query_parameter):
     for i in range(3):
         add_film(f"Kodak Gold {i}", manufacturer="Kodak", dx="1251")
     add_film("Kodak Gold Other", manufacturer="Other", dx="1251")
-    filters = {"q": 'kodak + "gold"', "manufacturer": "kodak", "dx_number": "078-03", "limit": "2"}
+    filters = {query_parameter: 'kodak + "gold"', "manufacturer": "kodak", "dx_number": "078-03", "limit": "2"}
     film.db_ram_connection.execute("CREATE TABLE film_types (dx_min, dx_max, label)")
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=website_app), base_url="http://test") as client:
         response = await client.get("/search", params=filters)
