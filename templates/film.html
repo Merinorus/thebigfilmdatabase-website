@@ -78,6 +78,16 @@
             <br>
             <br>
             Sorry, we could not find the film you are looking for.
+            {% if suggestions %}
+                <p>Perhaps you were looking for one of these films?</p>
+                <ul class="film-suggestions">
+                    {% for suggestion in suggestions %}
+                        <li>
+                            <a href="{{ url_for('read_film', url_name=suggestion.url_name) }}">{{ suggestion.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
             <br>
             <br>
         {% endif %}

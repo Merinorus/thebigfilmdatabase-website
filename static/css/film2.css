@@ -136,6 +136,11 @@ li {
     line-height: 20px;
 }
 
+.film-suggestions li {
+    font-family: inherit;
+    font-size: inherit;
+}
+
 blockquote {
     font-family: Verdana, Geneva, sans-serif;
     font-size: 21px;

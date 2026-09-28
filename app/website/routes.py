@@ -113,11 +113,13 @@ async def read_film(
     request: Request, url_name: Annotated[str, Path(description="Unique URL-safe name of the film", max_length=255)]
 ):
     result = film.get_by_url(url_name)
+    suggestions = film.suggest_for_missing_url(url_name) if result is None else []
     film_type = get_film_type(result.dx_extract) if result and result.dx_extract else None
 
     return templates.TemplateResponse(
         request=request,
         name="film.html",
-        context={"request": request, "film": result, "film_type": film_type},
+        context={"request": request, "film": result, "film_type": film_type, "suggestions": suggestions},
+        status_code=200 if result is not None else 404,
         headers={"Cache-Control": HTML_CACHE_CONTROL},
     )

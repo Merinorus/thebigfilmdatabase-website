@@ -1,9 +1,16 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, Query, Response
-from fastapi.exceptions import HTTPException
+from fastapi.responses import JSONResponse
 
-from app.api.schemas.response import AutocompleteResponse, BaseResponse, FilmListResponse, FilmResponse
+from app.api.schemas.response import (
+    AutocompleteResponse,
+    BaseResponse,
+    FilmListResponse,
+    FilmNotFoundResponse,
+    FilmResponse,
+    FilmSuggestions,
+)
 from app.core import film
 from app.core.film import MAX_AUTOCOMPLETE_RESULTS, MAX_RESULTS
 from app.core.schemas.query import SearchFilmQuery
@@ -97,7 +104,14 @@ async def autocomplete_manufacturer(
     return AutocompleteResponse(data=suggestions)
 
 
-@api.get("/film/{url_name}", response_model=FilmResponse, response_model_exclude_none=True)
+@api.get(
+    "/film/{url_name}",
+    response_model=FilmResponse,
+    response_model_exclude_none=True,
+    responses={
+        404: {"model": FilmNotFoundResponse, "description": "Film not found; possible matches in data.suggestions"}
+    },
+)
 async def get_by_url_name(
     response: Response,
     url_name: Annotated[str, Path(description="Unique URL-safe name of the film", max_length=255)],
@@ -105,5 +119,10 @@ async def get_by_url_name(
     response.headers["Cache-Control"] = SEARCH_FILM_CACHE_CONTROL
     result = film.get_by_url(url_name)
     if not result:
-        raise HTTPException(status_code=404, detail="Film not found")
+        error = FilmNotFoundResponse(data=FilmSuggestions(suggestions=film.suggest_for_missing_url(url_name)))
+        return JSONResponse(
+            status_code=404,
+            content=error.model_dump(mode="json", exclude_none=True),
+            headers={"Cache-Control": SEARCH_FILM_CACHE_CONTROL},
+        )
     return FilmResponse(data=result)

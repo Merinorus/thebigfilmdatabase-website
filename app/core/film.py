@@ -12,6 +12,9 @@ from app.utils.url import url_safe_str
 
 # Max results allowed for a search request
 MAX_RESULTS = 101
+MAX_FALLBACK_WORDS = 12
+MAX_FALLBACK_REMOVALS = 5
+MAX_FALLBACK_RESULTS = 10
 
 # Literal queries for each autocomplete scope keep the searched columns whitelisted.
 _AUTOCOMPLETE_QUERIES = {
@@ -123,6 +126,24 @@ def get_by_url(url: str) -> FilmInDB | None:
         column_names = [description[0] for description in cursor.description]
         result = HTMLFilmInDB(**dict(zip(column_names, row, strict=False))) if row else None
     return result
+
+
+def suggest_for_missing_url(url: str) -> list[FilmInDB]:
+    """Try the slug, then up to five shorter prefixes, with bounded search work."""
+    if len(url) > 255 or not re.fullmatch(r"[a-z0-9_-]+", url):
+        return []
+    words = list(dict.fromkeys(re.findall(r"[a-z0-9]+", url)))
+    if len(words) > MAX_FALLBACK_WORDS:
+        return []
+    # Keep numeric endings: they may be ISO speeds rather than duplicate suffixes.
+    for _ in range(MAX_FALLBACK_REMOVALS + 1):
+        if not any(len(word) >= 3 and word not in AUTOCOMPLETE_STOPWORDS for word in words):
+            break
+        results = search(q=" ".join(words), limit=MAX_FALLBACK_RESULTS)
+        if results:
+            return results
+        words.pop()
+    return []
 
 
 def get_random(limit: int = 1) -> list[FilmInDB]:

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -19,6 +19,15 @@ class FilmResponse(Response):
 
 class FilmListResponse(Response):
     data: list[FilmInDB] = None
+
+
+class FilmSuggestions(BaseModel):
+    suggestions: list[FilmInDB]
+
+
+class FilmNotFoundResponse(Response):
+    status: Literal["error"] = "error"
+    data: FilmSuggestions
 
 
 class AutocompleteResponse(Response):
