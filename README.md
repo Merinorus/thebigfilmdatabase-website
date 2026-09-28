@@ -35,6 +35,19 @@ Or with automatic reload:
 uv run uvicorn app.app:app --reload --port 3500
 ```
 
+Browse the full catalogue at `/search`. Search results and the catalogue use numbered
+pages (`/search?page=2`), with 100 films per page by default. Pagination links preserve
+the search filters and the optional `limit` parameter. Pages beyond the last result
+return HTTP 404. Film detail URLs are unchanged.
+
+The API supports the same pagination: `/api/search?q=kodak&page=2&limit=50`.
+Its JSON response keeps `status` and the `data` array, and adds `page`, `limit`,
+`total` (all matching films), and `pages`. Without filters, it lists the whole
+catalogue. The default page is 1 and the default limit is 100 (maximum 101).
+An empty search result returns `data: []`, `total: 0`, and `pages: 1` on page 1;
+pages beyond the last result return HTTP 404, and invalid page/limit values
+return HTTP 422. These parameters and response fields are documented in `/docs`.
+
 Run the development checks:
 
 ```sh

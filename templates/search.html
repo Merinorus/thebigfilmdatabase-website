@@ -1,15 +1,20 @@
 {% extends "layout.html" %}
 {% block title %}
-    Search results
+    {{ "All films" if is_catalogue else "Search results" }} — Page {{ page }}
 {% endblock title %}
 {% block content %}
-    <div class="footer">
-        <p>
-            Found {{ count }} films.
-            {% if too_many_results %}Results are cropped, please narrow your search.{% endif %}
-            <br>
-            <a href='{{ url_for("index_page") }}'>Search for another film</a>
-        </p>
+    <div class="footer results-toolbar">
+        <div class="results-summary">
+            <div class="results-heading">
+                <h2>{{ search_description }}.</h2>
+                <a href="{{ url_for("index_page") }}">Search for another film</a>
+            </div>
+            <p>
+                Found {{ count }} films.
+                {% if count %}Showing {{ first_result }}–{{ last_result }}.{% endif %}
+            </p>
+        </div>
+        {% include "pagination.html" %}
     </div>
     {% for film in films %}
         <footer class="footer">
@@ -80,6 +85,7 @@
             <br />
         </footer>
     {% endfor %}
+    {% include "pagination.html" %}
     {% if not films %}
         <p>No results found</p>
     {% endif %}

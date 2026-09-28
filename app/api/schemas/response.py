@@ -1,6 +1,6 @@
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.core.schemas.film import FilmInDB
 
@@ -28,6 +28,13 @@ class FilmSuggestions(BaseModel):
 class FilmNotFoundResponse(Response):
     status: Literal["error"] = "error"
     data: FilmSuggestions
+
+
+class PaginatedFilmListResponse(FilmListResponse):
+    page: int = Field(ge=1, description="Current page, starting at 1")
+    limit: int = Field(ge=1, description="Maximum number of films per page")
+    total: int = Field(ge=0, description="Total number of films matching the filters")
+    pages: int = Field(ge=1, description="Total number of pages; 1 when no films match")
 
 
 class AutocompleteResponse(Response):

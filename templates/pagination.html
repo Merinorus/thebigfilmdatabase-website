@@ -1,0 +1,24 @@
+{% if pages > 1 %}
+    <nav class="footer pagination" aria-label="Results pages">
+        {% if previous_url %}
+            <a class="pagination-previous" href="{{ previous_url }}" rel="prev">Previous</a>
+        {% else %}
+            <span class="pagination-previous pagination-placeholder" aria-hidden="true">Previous</span>
+        {% endif %}
+        <div class="pagination-numbers">
+            {% for link in page_links %}
+                {% if link.number == page %}
+                    <span aria-current="page">{{ page }}</span>
+                {% else %}
+                    <a href="{{ link.url }}" aria-label="Page {{ link.number }}">{{ link.number }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% if next_url %}
+            <a class="pagination-next" href="{{ next_url }}" rel="next">Next</a>
+        {% else %}
+            <span class="pagination-next pagination-placeholder" aria-hidden="true">Next</span>
+        {% endif %}
+        <span class="pagination-summary">Page {{ page }} of {{ pages }}</span>
+    </nav>
+{% endif %}

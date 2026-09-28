@@ -272,27 +272,36 @@ def search(
     *,
     q: str | None = None,
 ) -> list[FilmInDB]:
-    """Return the list of films in database, given the search criterias. At least one must be given.
+    """Return the first page of matching films for API clients."""
+    films, _ = search_page(dx_extract, dx_full, name, manufacturer, limit, q=q)
+    return films
 
-    Args:
-        dx_extract (str, optional): DX code extract (4 digits, with leading zeros). Defaults to None.
-        dx_full (str, optional): DX full code (6 digits, with leading zeros). Defaults to None.
-        name (str, optional): Film name. Defaults to None.
-        manufacturer (str, optional): Film manufacturer. Defaults to None.
-        q (str, optional): Words searched across name, manufacturer, distributor and notes ("og_film_or_information").
 
-    Raises:
-        ValueError: If no search parameter is given
+def search_page(
+    dx_extract: str = None,
+    dx_full: str = None,
+    name: str = None,
+    manufacturer: str = None,
+    limit: int = MAX_RESULTS,
+    *,
+    q: str | None = None,
+    page: int = 1,
+) -> tuple[list[FilmInDB], int]:
+    """Return a page and the total count, including an unfiltered alphabetical catalogue.
 
-    Returns:
-        list[FilmInDB]: The found films in database
+    Legacy name/DX ranking is applied to all matches before slicing. Other searches
+    are ranked and paginated in SQLite, so the former result cap cannot hide films.
     """
+    if page < 1 or not 1 <= limit <= MAX_RESULTS:
+        raise ValueError("Invalid page or page size")
+    offset = (page - 1) * limit
+    cursor = db_ram_connection.cursor()
     db_query = "SELECT * FROM films WHERE 1=1"
     params = []
     guessed_dx_extract = None
     match_terms = combined_search_param(q) if q is not None else None
     if q is not None and match_terms is None:
-        return []
+        return [], 0
     if match_terms:
         db_query += " AND films MATCH ?"
         params.append(f"{{name manufacturer distributor og_film_or_information}} : ({match_terms})")
@@ -318,42 +327,44 @@ def search(
     if manufacturer:
         db_query += " AND manufacturer MATCH ?"
         params.append(fulltext_search_param(manufacturer))
-    if params:
-        order_by_params = []
-        if match_terms:
-            # Rank all candidates before LIMIT: name-only matches, identity-column matches,
-            # then matches requiring notes. Column weights follow the FTS table schema.
-            order_by_params.extend(
-                [
-                    "CASE WHEN rowid IN (SELECT rowid FROM films WHERE name MATCH ?) THEN 0 "
-                    "WHEN rowid IN (SELECT rowid FROM films WHERE films MATCH ?) THEN 1 ELSE 2 END",
-                    # Weights in FTS column order: name=10, notes=1, manufacturer=5, distributor=3; others=0.
-                    "bm25(films, 0, 0, 10, 1, 5, 0, 0, 0, 0, 3, 0, 0, 0)",
-                ]
-            )
-            params.extend([match_terms, f"{{name manufacturer distributor}} : ({match_terms})"])
-        elif dx_extract or dx_full:
-            order_by_params.append("case when dx_full is null then 1 else 0 end, dx_full, dx_extract")
-        if manufacturer and not match_terms:
-            order_by_params.append("manufacturer")
-        order_by_params.append("name, rowid")
-        db_query += " ORDER BY " + ", ".join(order_by_params) + " LIMIT ?"
-        # Do not crop results too much earlier, otherwise the sort would return unrelevant results
-        query_limit = min(limit, MAX_RESULTS) if match_terms else min(10 * limit, MAX_RESULTS)
-        params.append(query_limit)
-        try:
-            cursor.execute(db_query, params)
-            rows = cursor.fetchall()
+    try:
+        count = cursor.execute(db_query.replace("SELECT *", "SELECT COUNT(*)", 1), params).fetchone()[0]
+    except sqlite3.OperationalError:
+        return [], 0
+    if offset >= count:
+        return [], count
 
-            # Convert rows to dictionary
-            column_names = [description[0] for description in cursor.description]
-            films = [dict(zip(column_names, row, strict=False)) for row in rows]
-        except sqlite3.OperationalError as e:
-            print(f"SQL Error detected: query will silently fail and return no result. Error detail:\n{e}")
-            films = []
-
-    else:
-        raise ValueError("No search parameters provided.")
+    order_by_params = []
+    if match_terms:
+        # Rank all candidates before LIMIT: name-only matches, identity-column matches,
+        # then matches requiring notes. Column weights follow the FTS table schema.
+        order_by_params.extend(
+            [
+                "CASE WHEN rowid IN (SELECT rowid FROM films WHERE name MATCH ?) THEN 0 "
+                "WHEN rowid IN (SELECT rowid FROM films WHERE films MATCH ?) THEN 1 ELSE 2 END",
+                # Weights in FTS column order: name=10, notes=1, manufacturer=5, distributor=3; others=0.
+                "bm25(films, 0, 0, 10, 1, 5, 0, 0, 0, 0, 3, 0, 0, 0)",
+            ]
+        )
+        params.extend([match_terms, f"{{name manufacturer distributor}} : ({match_terms})"])
+    elif dx_extract or dx_full:
+        order_by_params.append("case when dx_full is null then 1 else 0 end, dx_full, dx_extract")
+    if manufacturer and not match_terms:
+        order_by_params.append("manufacturer")
+    order_by_params.append("name, rowid")
+    db_query += " ORDER BY " + ", ".join(order_by_params)
+    rank_in_python = (name and not any([dx_extract, dx_full, manufacturer, q])) or (dx_full and not match_terms)
+    if not rank_in_python:
+        db_query += " LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
+    try:
+        cursor.execute(db_query, params)
+        rows = cursor.fetchall()
+        column_names = [description[0] for description in cursor.description]
+        films = [dict(zip(column_names, row, strict=False)) for row in rows]
+    except sqlite3.OperationalError as e:
+        print(f"SQL Error detected: query will silently fail and return no result. Error detail:\n{e}")
+        return [], 0
 
     ta = TypeAdapter(list[HTMLFilmInDB])
     models = ta.validate_python(films)
@@ -377,9 +388,8 @@ def search(
     # If a DX full number is provided and matches several films (eg: 012514 -> 012514, 012513, 912513)
     if dx_full and not match_terms:
         # is the provided DX Full number, except the last digit (number of full-frame exposures)
-        models.sort(key=lambda x: x.dx_full.startswith(dx_full[:-1]), reverse=True)
+        models.sort(key=lambda x: (x.dx_full or "").startswith(dx_full[:-1]), reverse=True)
         # is exactly the provided DX Full number
         models.sort(key=lambda x: x.dx_full == dx_full, reverse=True)
 
-    # Limit returned results
-    return models[:limit]
+    return (models[offset : offset + limit] if rank_in_python else models), count

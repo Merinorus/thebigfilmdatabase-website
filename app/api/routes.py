@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.api.schemas.response import (
@@ -10,6 +10,7 @@ from app.api.schemas.response import (
     FilmNotFoundResponse,
     FilmResponse,
     FilmSuggestions,
+    PaginatedFilmListResponse,
 )
 from app.core import film
 from app.core.film import MAX_AUTOCOMPLETE_RESULTS, MAX_RESULTS
@@ -39,19 +40,28 @@ async def healthcheck():
     return BaseResponse()
 
 
-@api.get("/search", response_model=FilmListResponse, response_model_exclude_none=True)
-async def search(response: Response, query: Annotated[SearchFilmQuery, Depends(SearchFilmQuery)]):
+@api.get("/search", response_model=PaginatedFilmListResponse, response_model_exclude_none=True)
+async def search(
+    response: Response,
+    query: Annotated[SearchFilmQuery, Depends(SearchFilmQuery)],
+    page: Annotated[int, Query(ge=1, description="Page number, starting at 1")] = 1,
+):
+    """Search films, or browse the full catalogue without filters. Nonexistent pages return HTTP 404."""
     response.headers["Cache-Control"] = SEARCH_FILM_CACHE_CONTROL
-    films = film.search(
+    films, total = film.search_page(
         dx_extract=query.dx_extract,
         dx_full=query.dx_full,
         name=query.name,
         manufacturer=query.manufacturer,
         q=query.q,
         limit=query.limit,
+        page=page,
     )
 
-    return FilmListResponse(data=films)
+    pages = max(1, (total + query.limit - 1) // query.limit)
+    if page > pages:
+        raise HTTPException(status_code=404, detail="Page not found")
+    return PaginatedFilmListResponse(data=films, page=page, limit=query.limit, total=total, pages=pages)
 
 
 @api.get("/random", response_model=FilmListResponse, response_model_exclude_none=True)

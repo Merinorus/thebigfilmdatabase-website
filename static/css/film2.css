@@ -101,7 +101,7 @@ h1 {
     font-style: normal;
     font-variant: normal;
     font-weight: 500;
-    line-height: 12px;
+    line-height: 1.3;
     text-shadow: 0.1em 0.1em 0.2em black;
     color: #f8f8f2;
     margin: 0.4em 0.4em 0.4em 0.4em;
@@ -114,8 +114,125 @@ h1 a {
     /* Remove underline */
 }
 
+h1 .title-disclaimer {
+    color: #dae2ea;
+    font-style: italic;
+    display: inline-block;
+    padding: 0.1em;
+}
+
+h1 .title-disclaimer:hover {
+    text-decoration: underline;
+}
+
+h1 .title-disclaimer:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+#disclaimer {
+    scroll-margin-top: 1em;
+}
+
 a {
     color: #066c9c;
+}
+
+.results-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25em 1em;
+}
+
+.results-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25em 0.5em;
+    min-width: 0;
+}
+
+.results-summary h2 {
+    margin: 0;
+    font-size: 1.1em;
+    overflow-wrap: anywhere;
+}
+
+.results-summary p {
+    margin: 0;
+}
+
+.results-toolbar .pagination {
+    margin-top: 0.5em;
+}
+
+.pagination {
+    display: grid;
+    grid-template-columns: 6em max-content 6em;
+    grid-template-areas: "previous numbers next";
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.pagination-previous {
+    grid-area: previous;
+}
+
+.pagination-next {
+    grid-area: next;
+}
+
+.pagination-numbers {
+    grid-area: numbers;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 2.5em;
+}
+
+.pagination-summary {
+    grid-area: summary;
+    display: none;
+}
+
+.pagination-placeholder {
+    visibility: hidden;
+}
+
+@media (max-width: 600px) {
+    .pagination {
+        grid-template-columns: 5em minmax(0, 1fr) 5em;
+        grid-template-areas: "previous summary next";
+        gap: 0;
+    }
+
+    .pagination-numbers {
+        display: none;
+    }
+
+    .pagination-summary {
+        display: block;
+    }
+
+    .results-summary {
+        flex-direction: column;
+    }
+}
+
+.pagination a,
+.pagination span {
+    padding: 0.5em;
+}
+
+.pagination [aria-current="page"] {
+    font-weight: bold;
+    background-color: #fff;
+    border-radius: 5px;
 }
 
 h3 {
