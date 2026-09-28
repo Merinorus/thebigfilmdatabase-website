@@ -57,7 +57,7 @@ class SearchFilmQuery(QueryModel):
     q: str | None = Field(
         max_length=255,
         default=None,
-        description="Search name, manufacturer, distributor and notes. All words must match; only the last word is completed.",
+        description="Search name, manufacturer, distributor, notes and country. All words must match; only the last word is completed.",
     )
     limit: PositiveInt = Field(le=MAX_RESULTS, default=100)
 

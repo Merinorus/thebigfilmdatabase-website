@@ -304,7 +304,7 @@ def search_page(
         return [], 0
     if match_terms:
         db_query += " AND films MATCH ?"
-        params.append(f"{{name manufacturer distributor og_film_or_information}} : ({match_terms})")
+        params.append(f"{{name manufacturer distributor og_film_or_information country}} : ({match_terms})")
 
     if dx_extract:
         dx_extract = dx_extract.zfill(4)
@@ -337,13 +337,13 @@ def search_page(
     order_by_params = []
     if match_terms:
         # Rank all candidates before LIMIT: name-only matches, identity-column matches,
-        # then matches requiring notes. Column weights follow the FTS table schema.
+        # then matches requiring notes or country. Column weights follow the FTS table schema.
         order_by_params.extend(
             [
                 "CASE WHEN rowid IN (SELECT rowid FROM films WHERE name MATCH ?) THEN 0 "
                 "WHEN rowid IN (SELECT rowid FROM films WHERE films MATCH ?) THEN 1 ELSE 2 END",
-                # Weights in FTS column order: name=10, notes=1, manufacturer=5, distributor=3; others=0.
-                "bm25(films, 0, 0, 10, 1, 5, 0, 0, 0, 0, 3, 0, 0, 0)",
+                # FTS weights: name=10, notes=1, manufacturer=5, country=0.5, distributor=3; others=0.
+                "bm25(films, 0, 0, 10, 1, 5, 0, 0.5, 0, 0, 3, 0, 0, 0)",
             ]
         )
         params.extend([match_terms, f"{{name manufacturer distributor}} : ({match_terms})"])
