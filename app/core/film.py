@@ -8,7 +8,7 @@ from pydantic import TypeAdapter
 from app.core.database import db_ram_connection
 from app.core.schemas.film import FilmInDB, HTMLFilmInDB
 from app.utils.sql import combined_search_param, fulltext_search_param, sanitize_fulltext_string
-from app.utils.url import url_safe_str
+from app.utils.url import normalize_slug
 
 # Max results allowed for a search request
 MAX_RESULTS = 101
@@ -115,13 +115,13 @@ def get_by_id(rowid: int) -> FilmInDB | None:
 
 def get_by_url(url: str) -> FilmInDB | None:
     """Return a film by its URL name."""
-    if url != url_safe_str(url):
+    if len(url) > 255 or not re.fullmatch(r"[a-z0-9_-]+", url):
         # Silently refuse unsafe URLs (404 error). All films in DB have a valid url safe name.
         result = None
     else:
         cursor = db_ram_connection.cursor()
         db_query = "SELECT * FROM films WHERE url_name = ?"
-        cursor.execute(db_query, [url])
+        cursor.execute(db_query, [normalize_slug(url)])
         row = cursor.fetchone()
         column_names = [description[0] for description in cursor.description]
         result = HTMLFilmInDB(**dict(zip(column_names, row, strict=False))) if row else None

@@ -9,7 +9,7 @@ from pydantic import TypeAdapter
 
 from app.config import settings
 from app.core.schemas.film import HTMLFilmInDB
-from app.utils.url import generate_unique_url
+from app.utils.url import UniqueUrlGenerator, normalize_unique_slugs
 
 
 def update_db():
@@ -80,7 +80,9 @@ def update_db():
     df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
 
     # Encode film name
-    df["url_name"] = df["name"].apply(generate_unique_url)
+    # Preserve legacy duplicate suffixes, then reject any normalization collisions.
+    generator = UniqueUrlGenerator(normalize=False)
+    df["url_name"] = normalize_unique_slugs(df["name"].apply(generator.generate).tolist())
 
     # Save the dataframe to a SQLite database
     pathlib.Path(settings.DB_SQLITE_FILEPATH).parent.mkdir(parents=True, exist_ok=True)

@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, Query, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.api.schemas.response import (
     AutocompleteResponse,
@@ -109,7 +109,8 @@ async def autocomplete_manufacturer(
     response_model=FilmResponse,
     response_model_exclude_none=True,
     responses={
-        404: {"model": FilmNotFoundResponse, "description": "Film not found; possible matches in data.suggestions"}
+        301: {"description": "Redirect to the canonical film API URL"},
+        404: {"model": FilmNotFoundResponse, "description": "Film not found; possible matches in data.suggestions"},
     },
 )
 async def get_by_url_name(
@@ -118,6 +119,10 @@ async def get_by_url_name(
 ):
     response.headers["Cache-Control"] = SEARCH_FILM_CACHE_CONTROL
     result = film.get_by_url(url_name)
+    if result is not None and url_name != result.url_name:
+        return RedirectResponse(
+            url=f"/api/film/{result.url_name}", status_code=301, headers={"Cache-Control": SEARCH_FILM_CACHE_CONTROL}
+        )
     if not result:
         error = FilmNotFoundResponse(data=FilmSuggestions(suggestions=film.suggest_for_missing_url(url_name)))
         return JSONResponse(
