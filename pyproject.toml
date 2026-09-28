@@ -18,7 +18,11 @@ dev = [
     "pre-commit~=4.6.0",
     "pytest>=9.1.1",
 ]
-install = ["numpy~=2.3.2", "pandas~=2.3.2"]
+install = [
+    "nh3>=0.3,<0.4",
+    "numpy~=2.3.2",
+    "pandas~=2.3.2",
+]
 
 [tool.uv]
 package = false

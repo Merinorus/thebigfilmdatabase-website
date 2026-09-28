@@ -56,7 +56,7 @@ uv run pre-commit run --all-files
 
 Dependencies are declared in `pyproject.toml` and locked in `uv.lock`. Commit both
 when changing dependencies with `uv add`. The default `dev` group contains
-pre-commit; the optional `install` group contains NumPy and pandas for importing
+pre-commit; the optional `install` group contains nh3, NumPy and pandas for importing
 the CSV. Production uses `uv sync --locked --no-dev`.
 
 ### Build with Docker

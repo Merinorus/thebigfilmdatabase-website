@@ -1,5 +1,6 @@
 import os
 import pathlib
+import re
 import sqlite3
 from copy import deepcopy
 
@@ -9,6 +10,8 @@ from pydantic import TypeAdapter
 
 from app.config import settings
 from app.core.schemas.film import HTMLFilmInDB
+from app.utils.image_path import safe_image_filename
+from app.utils.text import clean_imported_text, validate_imported_text
 from app.utils.url import UniqueUrlGenerator, normalize_unique_slugs
 
 
@@ -39,12 +42,32 @@ def update_db():
     df: pd.DataFrame = pd.read_csv(
         os.path.join(settings.FILM_DATABASE_REPO_DIR, "film_database.csv"),
         sep=";",
+        dtype=str,
         names=df_column_names,
         skiprows=1,  # Skip the first row if it's a header
         na_values=["", " ", "NaN", "NULL"],
-        on_bad_lines="warn",
+        on_bad_lines="error",
         engine="python",
     )  # Use Python engine for better handling of irregular rows
+
+    # Check every original field before cleaning or conversion can hide a payload.
+    # No connection to the destination DB has been opened at this point.
+    for row_number, row in enumerate(df.to_dict(orient="records"), start=2):
+        for column_name, value in row.items():
+            if not isinstance(value, str):
+                continue
+            try:
+                validate_imported_text(value)
+                if column_name == "picture" and value.strip():
+                    image = value.strip()
+                    # Legacy filenames without an extension are harmless typos;
+                    # they are omitted below. URLs, paths and active formats fail.
+                    if not safe_image_filename(image) and (
+                        "." in image or not re.fullmatch(r"[\w][\w ()+,&’'-]*", image)
+                    ):
+                        raise ValueError("Unsafe image filename or URL")
+            except ValueError as error:
+                raise ValueError(f"Unsafe CSV content at record {row_number}, column {column_name}: {error}") from error
 
     # If null values, fill with native python None instead of Numpy "NaN" values
     df = df.where(df.notnull(), None)
@@ -84,14 +107,37 @@ def update_db():
     generator = UniqueUrlGenerator(normalize=False)
     df["url_name"] = normalize_unique_slugs(df["name"].apply(generator.generate).tolist())
 
+    df = df.astype(object).where(df.notna(), None)
+
+    # Generate slugs from the original names first to preserve existing links.
+    # Only display text is cleaned: codes, filenames and slugs retain their meaning.
+    for column_name in [
+        "name",
+        "og_film_or_information",
+        "manufacturer",
+        "country",
+        "begin_year",
+        "end_year",
+        "distributor",
+    ]:
+        df[column_name] = df[column_name].map(
+            lambda value: clean_imported_text(value) if isinstance(value, str) else value
+        )
+
+    invalid_pictures = df["picture"].map(lambda value: bool(value) and safe_image_filename(value) is None)
+    if invalid_pictures.any():
+        print(f"Ignoring {invalid_pictures.sum()} invalid image filenames")
+    df["picture"] = df["picture"].map(safe_image_filename)
+
+    # Validate before replacing the existing database, including required names.
+    if df["name"].map(lambda value: not value).any():
+        raise ValueError("Film names must not be empty after cleaning")
+    TypeAdapter(list[HTMLFilmInDB]).validate_python(df.to_dict(orient="records"))
+
     # Save the dataframe to a SQLite database
     pathlib.Path(settings.DB_SQLITE_FILEPATH).parent.mkdir(parents=True, exist_ok=True)
 
     db_file_connection = sqlite3.connect(settings.DB_SQLITE_FILEPATH)
-
-    print(df[0:10])
-    print(df[2700:2710])
-    print(df.iloc[66]["reliability"])
 
     # Prepare database table with fulltext index
     cursor = db_file_connection.cursor()
