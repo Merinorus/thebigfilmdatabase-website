@@ -151,6 +151,19 @@
         <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=15"
                 defer></script>
     </article>
+    {% if alternative_interface_available %}
+        <aside class="interface-promo" aria-labelledby="interface-promo-title">
+            <div class="interface-promo-copy">
+                <h2 id="interface-promo-title">
+                    Try another interface <span class="interface-promo-badge">Experimental</span>
+                </h2>
+                <p>Search by name or DX code in one place, with autocomplete and barcode scanning.</p>
+            </div>
+            <a class="interface-promo-link"
+               href="{{ alternative_interface_url }}"
+               target="_blank">Try it now <span aria-hidden="true">→</span></a>
+        </aside>
+    {% endif %}
 {% endblock content %}
 {% block footer %}
     <p>

@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
 
+from app.config import settings
 from app.constants import STATIC_DIR, TEMPLATE_DIR
 from app.core import film
 from app.core.database import total_count
@@ -59,7 +60,14 @@ async def index_page(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"request": request, "film": result, "url_safe_str": url_safe_str, "total_count": total_count},
+        context={
+            "request": request,
+            "film": result,
+            "url_safe_str": url_safe_str,
+            "total_count": total_count,
+            "alternative_interface_available": getattr(request.app.state, "alternative_interface_available", False),
+            "alternative_interface_url": str(settings.ALTERNATIVE_INTERFACE_URL),
+        },
     )
 
 

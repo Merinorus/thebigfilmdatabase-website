@@ -12,29 +12,40 @@ from limits.strategies import SlidingWindowCounterRateLimiter
 from app.api.routes import api
 from app.config import settings
 from app.constants import FILM_IMAGE_DIR_URL, STATIC_DIR, STATIC_DIR_URL
+from app.core.alternative_interface import update_alternative_interface_availability
 from app.core.cdn import update_cdn_url
 from app.website.routes import website
+
+
+async def periodically_update_availability(app: FastAPI):
+    while True:
+        await update_alternative_interface_availability(app)
+        await asyncio.sleep(settings.ALTERNATIVE_INTERFACE_CHECK_INTERVAL)
 
 
 async def daily_cdn_update():
     if settings.FILM_IMAGE_CDN_ENABLE:
         while True:
-            # Check the CDN availability every 30 minutes,
-            # and rotate on another one if it is unavailable.
+            # Rotate to another CDN if the current one is unavailable.
             await update_cdn_url()
-            await asyncio.sleep(1800)
+            await asyncio.sleep(settings.FILM_IMAGE_CDN_CHECK_INTERVAL)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    task = asyncio.create_task(daily_cdn_update())
+    app.state.alternative_interface_available = None
+    tasks = [
+        asyncio.create_task(daily_cdn_update()),
+        asyncio.create_task(periodically_update_availability(app)),
+    ]
     try:
         yield
     finally:
-        task.cancel()
-        # Optionally wait for the task to finish cancelling
-        with contextlib.suppress(asyncio.CancelledError):
-            await task
+        for task in tasks:
+            task.cancel()
+        for task in tasks:
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
 
 
 app = FastAPI(title="The Big Film Database", lifespan=lifespan)

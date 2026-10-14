@@ -6,7 +6,7 @@ All settings can be overridden by a .env file at runtime.
 
 import os
 
-from pydantic import Field, HttpUrl, NonNegativeFloat, NonNegativeInt
+from pydantic import Field, HttpUrl, NonNegativeFloat, NonNegativeInt, PositiveInt
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.constants import PROJECT_DIR
@@ -28,7 +28,11 @@ class Settings(BaseSettings):
 
     FILM_IMAGE_DIR: str = str(os.path.join(FILM_DATABASE_REPO_DIR, "Images"))
     FILM_IMAGE_CDN_ENABLE: bool = True
+    FILM_IMAGE_CDN_CHECK_INTERVAL: PositiveInt = 1800
     FILM_IMAGE_CDN_BASE_URLS: list[HttpUrl] = Field(min_length=1, default=_DEFAULT_CDN_BASE_URLS)
+
+    ALTERNATIVE_INTERFACE_URL: HttpUrl = "https://thebigfilmdatabase-app.merinorus.com/"
+    ALTERNATIVE_INTERFACE_CHECK_INTERVAL: PositiveInt = 300
 
     # Location of the local database, created at application launch from the repo's data
     DB_SQLITE_FILEPATH: str = str(os.path.join(DATA_DIR, "film_database.db"))

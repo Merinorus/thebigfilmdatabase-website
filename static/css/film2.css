@@ -366,6 +366,68 @@ pre {
     align-self: stretch;
 }
 
+.wrapper > .interface-promo {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    background: #e3f2fd;
+    border-color: #a7cde0;
+}
+
+.interface-promo-copy {
+    flex: 1 1 300px;
+    min-width: 0;
+}
+
+.interface-promo h2 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 4px;
+    font-size: 1.25em;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.interface-promo p {
+    margin: 0;
+}
+
+.interface-promo-badge {
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: #fff;
+    color: #066c9c;
+    font-size: 0.7em;
+}
+
+.interface-promo-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 16px;
+    border-radius: 5px;
+    background: #066c9c;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.interface-promo-link:hover {
+    background: #045477;
+}
+
+.interface-promo-link:focus-visible {
+    outline: 3px solid #066c9c;
+    outline-offset: 3px;
+}
+
 .search-card h2 {
     margin: 0 0 16px;
     font-size: 1.25em;
