@@ -31,23 +31,29 @@
                 <br />
             {% endif %}
             {% if film['dx_number'] %}
-                <strong>DX number :</strong> <a href="{{ url_for("search") }}?dx_number={{ film['dx_number'] }}">{{ film['dx_number'] }}</a>
+                <strong>DX number:</strong> <a href="{{ url_for("search") }}?dx_number={{ film['dx_number'] }}">{{ film['dx_number'] }}</a>
                 <br />
             {% endif %}
             {% if film['dx_extract'] %}
-                <strong>DX extract :</strong> <a href="{{ url_for("search") }}?dx_extract={{ film.dx_extract }}">{{ film.dx_extract }}</a>
+                <strong>DX extract:</strong> <a href="{{ url_for("search") }}?dx_extract={{ film.dx_extract }}">{{ film.dx_extract }}</a>
                 <br />
             {% endif %}
             {% if film.dx_full %}
-                <strong>DX Full code :</strong> <a href="{{ url_for("search") }}?dx_full={{ film.dx_full }}">{{ film.dx_full }}</a>
+                <strong>DX Full code:</strong> <a href="{{ url_for("search") }}?dx_full={{ film.dx_full }}">{{ film.dx_full }}</a>
                 <br />
             {% endif %}
             {% if film.dx_film_edge_barcode_svg() %}
-                <strong>DX Film Edge barcodes :</strong><span title="DX Film Edge Barcode (old format, without frame number)">{{ film.dx_film_edge_barcode_svg() | safe }}</span> or <span title="DX Film Edge Barcode (frame number = 0)">{{ film.dx_film_edge_barcode_svg(0) | safe }}</span>
-                <br />
+                <div class="dx-barcode-row">
+                    <strong>DX barcodes:</strong>
+                    <span class="dx-barcode-symbol"
+                          title="DX Film Edge Barcode (old format, without frame number)">{{ film.dx_film_edge_barcode_svg() | safe }}</span>
+                    <span>or</span>
+                    <span class="dx-barcode-symbol"
+                          title="DX Film Edge Barcode (frame number = 0)">{{ film.dx_film_edge_barcode_svg(0) | safe }}</span>
+                </div>
             {% endif %}
             {% if film.manufacturers %}
-                <strong>Manufacturer :</strong>
+                <strong>Manufacturer:</strong>
                 {% for manufacturer in film.manufacturers %}
                     <a href="{{ url_for("search") }}?manufacturer={{ manufacturer }}">{{ manufacturer }}</a>
                     {% if not loop.last %},{% endif %}
@@ -55,22 +61,22 @@
                 <br />
             {% endif %}
             {% if film.country %}
-                <strong>Origin :</strong> {{ film.country }}
+                <strong>Origin:</strong> {{ film.country }}
                 <br />
             {% endif %}
             {% if film.begin_year %}
-                <strong>Beginning year :</strong> {{ film.begin_year }}
+                <strong>Beginning year:</strong> {{ film.begin_year }}
                 <br />
             {% endif %}
             {% if film.end_year %}
-                <strong>End year :</strong> {{ film.end_year }}
+                <strong>End year:</strong> {{ film.end_year }}
                 <br />
             {% endif %}
             {% if film.distributor %}
-                <strong>Distributor :</strong> {{ film.distributor }}
+                <strong>Distributor:</strong> {{ film.distributor }}
                 <br />
             {% endif %}
-            <strong>Availability :</strong> {{ film.availability_label | safe }}
+            <strong>Availability:</strong> {{ film.availability_label | safe }}
             <br />
             <br />
         {% else %}

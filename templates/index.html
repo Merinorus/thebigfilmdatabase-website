@@ -3,105 +3,96 @@
     Find your 35mm film
 {% endblock title %}
 {% block content %}
-    <footer class="footer">
-        <p>
-            An open database of over 8,000 photographic films. Search by name or DX code.
-            <br />
-            Discover manufacturers, rebranded films and discontinued stocks. Have fun!
-        </p>
-    </footer>
-    <aside class="dxblock">
-        <h3>
-            Search a film by DX number
-            <br>
-            <br>
-            <img src="{{ url_for('static', path='images/dx_code.webp') }}"
-                 alt="Canister with a Dx code"
-                 width="300"
-                 height="158"
-                 loading="lazy">
-        </h3>
-        <form action='{{ url_for("search") }}'
+    <section class="search-intro" aria-label="About the database">
+        <p>An open database of over 8,000 photographic films. Search by name or DX code.</p>
+        <p>Discover manufacturers, rebranded films and discontinued stocks. Have fun!</p>
+    </section>
+    <section class="search-card dxblock" aria-labelledby="dx-search-title">
+        <h2 id="dx-search-title">Search a film by DX number</h2>
+        <img class="search-illustration"
+             src="{{ url_for('static', path='images/dx_code.webp') }}"
+             alt="35mm cassette showing its printed DX number"
+             width="300"
+             height="158"
+             loading="lazy">
+        <form class="dx-search-form"
+              action='{{ url_for("search") }}'
               method="get"
               name="search-by-dx-full"
               id="search-by-dx-full">
+            <label for="dx-full">Search by DX full number (6 digits):</label>
+            <div class="dx-search-fields">
+                <input id="dx-full"
+                       minlength="1"
+                       maxlength="6"
+                       pattern="[0-9]+"
+                       type="text"
+                       inputmode="numeric"
+                       name="dx_full"
+                       placeholder="DX full barcode (6 digits)">
+                <button type="submit">Search</button>
+            </div>
         </form>
-        <form action='{{ url_for("search") }}'
+        <form class="dx-search-form"
+              action='{{ url_for("search") }}'
               method="get"
               name="search-by-dx-parts"
               id="search-by-dx-parts">
+            <label for="dx-number">Search by DX number parts 1 and 2:</label>
+            <div class="dx-search-fields">
+                <input id="dx-number"
+                       minlength="1"
+                       maxlength="10"
+                       pattern="[0-9]+.+[0-9]+.*"
+                       type="text"
+                       name="dx_number"
+                       placeholder="DX number (eg: 115-10)">
+                <button type="submit">Search</button>
+            </div>
         </form>
-        <p>
+    </section>
+    <section class="search-card filmblock" aria-labelledby="name-search-title">
+        <h2 id="name-search-title">Search a film by name</h2>
+        <img class="search-illustration"
+             src="{{ url_for('static', path='images/films.webp') }}"
+             alt="Examples of photographic film boxes"
+             width="300"
+             height="158"
+             loading="lazy">
+        <p class="search-description">
+            Please enter the model name (eg: Lomography APX400).
             <br>
-            Search by DX full number (6 digits):
-            <br>
-            <input minlength="1"
-                   maxlength="6"
-                   pattern="[0-9]+"
-                   type="text"
-                   name="dx_full"
-                   placeholder="DX full barcode (6 digits)"
-                   form="search-by-dx-full">
-            <button type="submit" form="search-by-dx-full">Search</button>
-            <br>
-            <br>
-            Search by DX number parts 1 and 2:
-            <br>
-            <input minlength="1"
-                   maxlength="10"
-                   pattern="[0-9]+.+[0-9]+.*"
-                   type="text"
-                   name="dx_number"
-                   placeholder="DX number (eg: 115-10)"
-                   form="search-by-dx-parts">
-            <button type="submit" form="search-by-dx-parts">Search</button>
+            You can also filter by manufacturer (eg: Agfa):
         </p>
-    </aside>
-    <article class="filmblock">
-        <h3>
-            Search a film by name
-            <br>
-            <br>
-            <img src="{{ url_for('static', path='images/films.webp') }}"
-                 alt="Funny films"
-                 width="300"
-                 height="158"
-                 loading="lazy">
-        </h3>
         <form action='{{ url_for("search") }}'
               method="get"
               name="search-film"
               id="search-film">
+            <div class="name-search-fields">
+                <div class="search-field">
+                    <label for="film_name">Model name</label>
+                    <input maxlength="255"
+                           type="text"
+                           name="tbfd_film_query"
+                           id="film_name"
+                           autocomplete="on"
+                           placeholder="Model Name">
+                </div>
+                <div class="search-field">
+                    <label for="film_manufacturer">Manufacturer</label>
+                    <input maxlength="255"
+                           type="text"
+                           id="film_manufacturer"
+                           name="manufacturer"
+                           autocomplete="35mm-film-manufacturer"
+                           placeholder="Manufacturer">
+                </div>
+                <button type="submit">Search</button>
+            </div>
         </form>
-        <p>
-            <br>
-            Please enter the model name (eg: Lomography APX400).
-            <br>
-            You can also filter by manufacturer (eg: Agfa):
-            <br>
-            <input maxlength="255"
-                   type="text"
-                   name="tbfd_film_query"
-                   id="film_name"
-                   autocomplete="on"
-                   placeholder="Model Name"
-                   size="20"
-                   form="search-film">
-            <input maxlength="255"
-                   type="text"
-                   id="film_manufacturer"
-                   name="manufacturer"
-                   autocomplete="35mm-film-manufacturer"
-                   placeholder="Manufacturer"
-                   size="8"
-                   form="search-film">
-            <button type="submit" form="search-film">Search</button>
-            <br>
-            <br>
-        </p>
-    </article>
-    <article class="photo-search" aria-labelledby="photo-search-title">
-        <h3 id="photo-search-title">Search by camera or photo</h3>
+    </section>
+    <article class="search-card photo-search" aria-labelledby="photo-search-title">
+        <h2 id="photo-search-title">Search by camera or photo</h2>
         <div class="photo-search-layout">
             <div class="photo-scanner" data-search-url="{{ url_for("search") }}">
                 <div class="scanner-preview">

@@ -17,7 +17,7 @@
         {% include "pagination.html" %}
     </div>
     {% for film in films %}
-        <footer class="footer">
+        <footer class="footer film-result">
             {% if film.picture %}
                 <img src="{{ film.picture }}"
                      class="filmpicture"
@@ -25,9 +25,7 @@
                      alt="{{ film.name }}"
                      loading="lazy">
             {% endif %}
-            <strong><a href="{{ url_for('read_film', url_name=film.url_name) }}">{{ film.name }}</a></strong>
-            <br />
-            <br />
+            <strong class="film-result-title"><a href="{{ url_for('read_film', url_name=film.url_name) }}">{{ film.name }}</a></strong>
             {% if film.og_film_or_information %}
                 <strong>Information / Suspected emulsion:</strong> {{ film.og_film_or_information }}
                 {% if film.reliability %}
@@ -45,19 +43,25 @@
                 <br />
             {% endif %}
             {% if film['dx_extract'] %}
-                <strong>DX extract :</strong> <a href="{{ url_for("search") }}?dx_extract={{ film.dx_extract }}">{{ film.dx_extract }}</a>
+                <strong>DX extract:</strong> <a href="{{ url_for("search") }}?dx_extract={{ film.dx_extract }}">{{ film.dx_extract }}</a>
                 <br />
             {% endif %}
             {% if film.dx_full %}
-                <strong>DX Full code :</strong> <a href="{{ url_for("search") }}?dx_full={{ film.dx_full }}">{{ film.dx_full }}</a>
+                <strong>DX Full code:</strong> <a href="{{ url_for("search") }}?dx_full={{ film.dx_full }}">{{ film.dx_full }}</a>
                 <br />
             {% endif %}
             {% if film.dx_film_edge_barcode_svg() %}
-                <strong>DX Film Edge barcodes :</strong><span title="DX Film Edge Barcode (old format, without frame number)">{{ film.dx_film_edge_barcode_svg() | safe }}</span> or <span title="DX Film Edge Barcode (frame number = 0)">{{ film.dx_film_edge_barcode_svg(0) | safe }}</span>
-                <br />
+                <div class="dx-barcode-row">
+                    <strong>DX barcodes:</strong>
+                    <span class="dx-barcode-symbol"
+                          title="DX Film Edge Barcode (old format, without frame number)">{{ film.dx_film_edge_barcode_svg() | safe }}</span>
+                    <span>or</span>
+                    <span class="dx-barcode-symbol"
+                          title="DX Film Edge Barcode (frame number = 0)">{{ film.dx_film_edge_barcode_svg(0) | safe }}</span>
+                </div>
             {% endif %}
             {% if film.manufacturers %}
-                <strong>Manufacturer :</strong>
+                <strong>Manufacturer:</strong>
                 {% for manufacturer in film.manufacturers %}
                     <a href="{{ url_for("search") }}?manufacturer={{ manufacturer }}">{{ manufacturer }}</a>
                     {% if not loop.last %},{% endif %}
@@ -65,24 +69,22 @@
                 <br />
             {% endif %}
             {% if film.country %}
-                <strong>Origin :</strong> {{ film.country }}
+                <strong>Origin:</strong> {{ film.country }}
                 <br />
             {% endif %}
             {% if film.begin_year %}
-                <strong>Beginning year :</strong> {{ film.begin_year }}
+                <strong>Beginning year:</strong> {{ film.begin_year }}
                 <br />
             {% endif %}
             {% if film.end_year %}
-                <strong>End year :</strong> {{ film.end_year }}
+                <strong>End year:</strong> {{ film.end_year }}
                 <br />
             {% endif %}
             {% if film.distributor %}
-                <strong>Distributor :</strong> {{ film.distributor }}
+                <strong>Distributor:</strong> {{ film.distributor }}
                 <br />
             {% endif %}
-            <strong>Availability :</strong> {{ film.availability_label | safe }}
-            <br />
-            <br />
+            <strong>Availability:</strong> {{ film.availability_label | safe }}
         </footer>
     {% endfor %}
     {% include "pagination.html" %}

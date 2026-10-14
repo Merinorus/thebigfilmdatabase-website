@@ -6,28 +6,28 @@
 
 body {
     font-family: 'Open Sans', 'sans-serif';
-    background-color: #fff;
-    color: #444;
+    background-color: #fafbfc;
+    color: #344653;
     font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+    padding: 16px;
 }
-
-
-/* p {
-    margin: 0 0 1em 0;
-} */
 
 .wrapper {
     max-width: 940px;
-    grid-template-columns: 1fr; /* default: single column */
+    grid-template-columns: minmax(0, 1fr);
     margin: 0 auto;
     display: grid;
-    grid-gap: 10px;
+    gap: 16px;
+    align-items: start;
 }
 
 img.filmpicture{
     width: 150px;
     height: 100px;
     mix-blend-mode: multiply;
+    object-fit: contain;
 }
 
 @media (max-width: 600px) {
@@ -39,7 +39,8 @@ img.filmpicture{
         height: 80px;
     }
     body{
-        font-size:18px;
+        font-size: 17px;
+        padding: 12px;
     }
 }
 
@@ -52,57 +53,43 @@ img.filmpicture{
 
 
 @media screen and (min-width: 750px) {
-    /* no grid support? */
-    /*.dxblock {
-        float: left;
-    }
-    .filmblock {
-        float: right;
-    }*/
     .wrapper {
         margin: 0 auto;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .header,
-    .footer {
+    .footer,
+    .search-intro {
         grid-column: 1 / -1;
-        /* needed for the floated layout */
-        clear: both;
     }
     .found {
-        /* needed for the floated layout */
         background-color: #E3F2FD;
+    }
+
+    .search-description {
+        min-height: 3em;
     }
 }
 
 
 
 .wrapper>* {
-    background-color: #dae2ea;
+    background-color: #edf2f6;
+    border: 1px solid #d7e0e7;
     border-radius: 5px;
-    padding: 10px;
-    /* font-size: 150%; */
-    /* needed for the floated layout*/
-    margin-bottom: 10px;
-}
-
-
-/* We need to set the widths used on floated items back to auto, and remove the bottom margin as when we have grid we have gaps. */
-
-@supports (display: grid) {
-    .wrapper>* {
-        width: auto;
-        margin: 0;
-    }
+    padding: 16px;
+    min-width: 0;
+    margin: 0;
+    isolation: isolate;
 }
 
 h1 {
-    font-family: Verdana, Geneva, sans-serif;
+    font-family: inherit;
     font-style: normal;
     font-variant: normal;
     font-weight: 500;
     line-height: 1.3;
-    text-shadow: 0.1em 0.1em 0.2em black;
+    text-shadow: 0 1px 3px #18222b;
     color: #f8f8f2;
     margin: 0.4em 0.4em 0.4em 0.4em;
 }
@@ -137,6 +124,88 @@ h1 .title-disclaimer:focus-visible {
 
 a {
     color: #066c9c;
+}
+
+button,
+input[type="text"],
+.photo-scanner select {
+    font: inherit;
+    height: 2em;
+    line-height: 1.2;
+    padding: 3px 8px;
+    border: 1px solid #9aaab8;
+    border-radius: 5px;
+    color: #344653;
+    max-width: 100%;
+    vertical-align: middle;
+}
+
+input[type="text"] {
+    background: #fff;
+}
+
+input[type="text"]::placeholder {
+    color: #697782;
+    opacity: 1;
+}
+
+.name-search-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: end;
+}
+
+.name-search-fields input {
+    width: 100%;
+    min-width: 0;
+}
+
+@media (max-width: 749px) {
+    .name-search-fields {
+        grid-template-columns: minmax(0, 2fr) minmax(8em, 1fr);
+    }
+
+    .name-search-fields button {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+}
+
+button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 500;
+    background: #eef2f5;
+    cursor: pointer;
+}
+
+.scanner-actions button svg {
+    width: 16px;
+    height: 16px;
+}
+
+button:hover:not(:disabled):not(#camera-start) {
+    background: #e0e7ed;
+    border-color: #788e9f;
+}
+
+button:active:not(:disabled):not(#camera-start) {
+    background: #d2dce5;
+}
+
+button:focus-visible,
+input[type="text"]:focus-visible,
+.photo-scanner select:focus-visible {
+    outline: 3px solid #066c9c;
+    outline-offset: 3px;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: wait;
 }
 
 .results-summary {
@@ -236,7 +305,7 @@ a {
 }
 
 h3 {
-    font-family: Verdana, Geneva, sans-serif;
+    font-family: inherit;
     font-size: 18px;
     font-style: normal;
     font-variant: normal;
@@ -245,12 +314,12 @@ h3 {
 }
 
 li {
-    font-family: Verdana, Geneva, sans-serif;
-    font-size: 12px;
+    font-family: inherit;
+    font-size: inherit;
     font-style: normal;
     font-variant: normal;
     font-weight: 400;
-    line-height: 20px;
+    line-height: inherit;
 }
 
 .film-suggestions li {
@@ -259,7 +328,7 @@ li {
 }
 
 blockquote {
-    font-family: Verdana, Geneva, sans-serif;
+    font-family: inherit;
     font-size: 21px;
     font-style: normal;
     font-variant: normal;
@@ -268,7 +337,7 @@ blockquote {
 }
 
 pre {
-    font-family: Verdana, Geneva, sans-serif;
+    font-family: monospace;
     font-size: 13px;
     font-style: normal;
     font-variant: normal;
@@ -277,20 +346,114 @@ pre {
 }
 
 .donation {
-    font-family: Verdana, Geneva, sans-serif;
+    font-family: inherit;
     font-size: 8px;
     font-style: normal;
     font-variant: normal;
 }
 
-.photo-search {
-    min-width: 0;
-    padding: 16px;
+.search-intro p,
+.footer p {
+    margin: 0;
 }
 
-.photo-search h3 {
+.search-intro p + p,
+.footer p + p {
+    margin-top: 8px;
+}
+
+.search-card {
+    align-self: stretch;
+}
+
+.search-card h2 {
+    margin: 0 0 16px;
+    font-size: 1.25em;
+    line-height: 1.4;
+    font-weight: 600;
+    text-align: left;
+}
+
+.search-illustration {
+    display: block;
+    width: 100%;
+    height: 158px;
+    object-fit: contain;
+    margin: 0 0 16px;
+    mix-blend-mode: multiply;
+}
+
+.search-description {
     margin: 0 0 16px;
 }
+
+.search-card label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.875em;
+    font-weight: 600;
+}
+
+.field-hint {
+    font-weight: normal;
+    color: #526573;
+}
+
+.dx-search-form + .dx-search-form {
+    margin-top: 16px;
+}
+
+.dx-search-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.dx-search-fields input {
+    width: 100%;
+    min-width: 0;
+}
+
+.search-field {
+    min-width: 0;
+}
+
+.footer {
+    font-size: inherit;
+    color: #526573;
+}
+
+.wrapper > .film-result {
+    padding: 12px;
+    font-size: inherit;
+    line-height: 1.35;
+}
+
+.film-result-title {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.dx-barcode-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    clear: both;
+    font-size: inherit;
+    white-space: nowrap;
+}
+
+.dx-barcode-symbol {
+    flex: none;
+}
+
+.dx-barcode-symbol svg {
+    display: block;
+    width: auto;
+    height: auto;
+}
+
 
 .photo-search-layout {
     display: grid;
@@ -412,41 +575,8 @@ pre {
     margin-top: 8px;
 }
 
-.photo-scanner button,
 .photo-scanner select {
-    font: inherit;
-    min-height: 48px;
-    padding: 12px 16px;
-    border: 1px solid #066c9c;
-    border-radius: 24px;
-    max-width: 100%;
-}
-
-.photo-scanner button {
-    background: white;
-    color: #066c9c;
-    cursor: pointer;
-}
-
-.scanner-actions button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-weight: 600;
-}
-
-.photo-scanner #camera-stop {
-    border-color: transparent;
-    background: transparent;
-}
-
-.scanner-actions button:hover:not(:disabled) {
-    background: #e3f2fd;
-}
-
-.scanner-actions button:active:not(:disabled) {
-    background: #c8e5f5;
+    background: #eef2f5;
 }
 
 .photo-scanner #camera-start {
@@ -458,7 +588,7 @@ pre {
     border: 0;
     border-radius: 5px;
     background: transparent;
-    color: white;
+    color: #344653;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -476,26 +606,19 @@ pre {
     display: none;
 }
 
+.photo-scanner #barcodescancanvas:not([hidden]) ~ #camera-start {
+    background: transparent;
+}
+
 #camera-start span {
     position: relative;
-    padding: 8px 12px;
+    padding: 5px 9px;
     border-radius: 5px;
-    background: rgb(0 0 0 / 65%);
+    background: #fff;
 }
 
 .photo-scanner #camera-start:focus-visible {
     outline-offset: -4px;
-}
-
-.photo-scanner button:disabled {
-    opacity: 0.6;
-    cursor: wait;
-}
-
-.photo-scanner button:focus-visible,
-.photo-scanner select:focus-visible {
-    outline: 3px solid #066c9c;
-    outline-offset: 3px;
 }
 
 .photo-scanner [hidden] {
