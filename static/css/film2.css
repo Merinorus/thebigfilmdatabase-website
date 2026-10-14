@@ -532,7 +532,7 @@ pre {
 
 .scanner-preview {
     position: relative;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 9;
     overflow: hidden;
     border-radius: 5px;
     background: #18222b;
@@ -562,8 +562,9 @@ pre {
 .camera-guide-image.guide-cassette {
     width: 32%;
     aspect-ratio: 140 / 175;
-    top: 10%;
-    left: 34%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     background-size: 324.3% 100%;
     background-position: left center;
 }
@@ -691,12 +692,20 @@ pre {
     margin-bottom: 12px;
 }
 
-#barcodescancanvas {
+#barcodescancanvas,
+#camera-video {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: contain;
     background: #111;
+}
+
+#camera-video {
+    position: absolute;
+    inset: 0;
+    object-fit: cover;
+    object-position: center;
 }
 
 #scanner-status {

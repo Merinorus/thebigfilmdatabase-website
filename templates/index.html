@@ -96,11 +96,17 @@
         <div class="photo-search-layout">
             <div class="photo-scanner" data-search-url="{{ url_for("search") }}">
                 <div class="scanner-preview">
+                    <video id="camera-video"
+                           muted
+                           playsinline
+                           hidden
+                           aria-label="Camera preview">
+                    </video>
                     <canvas id="barcodescancanvas"
                             width="640"
                             height="480"
                             hidden
-                            aria-label="Camera preview or selected photo"></canvas>
+                            aria-label="Selected photo"></canvas>
                     <div id="camera-guide" data-subject="cassette" aria-hidden="true" hidden>
                         <div class="camera-guide-image guide-cassette"
                              style="--guide-image: url('{{ url_for('static', path='images/35mm-film-cassette-roll.webp') }}')">
@@ -148,7 +154,7 @@
         </div>
         <script src="{{ url_for('static', path='scripts/zxing_reader.js') }}?ver=1"
                 defer></script>
-        <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=15"
+        <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=16"
                 defer></script>
     </article>
     {% if alternative_interface_available %}

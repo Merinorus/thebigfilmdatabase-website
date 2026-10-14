@@ -11,7 +11,7 @@
     const status = document.getElementById('scanner-status');
     const guide = document.getElementById('camera-guide');
     let guideTimer;
-    const video = document.createElement('video');
+    const video = document.getElementById('camera-video');
     video.muted = true;
     video.playsInline = true;
     let reader;
@@ -65,6 +65,7 @@
         cancelAnimationFrame(frame);
         if (stream) stream.getTracks().forEach(track => track.stop());
         stream = null;
+        video.hidden = true;
         video.srcObject = null;
         stop.hidden = true;
         picker.hidden = true;
@@ -105,8 +106,10 @@
             lastScan = now;
             // Preserve the camera aspect ratio and enough detail for film-edge codes.
             const scale = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight));
-            canvas.width = Math.round(video.videoWidth * scale);
-            canvas.height = Math.round(video.videoHeight * scale);
+            const width = Math.round(video.videoWidth * scale);
+            const height = Math.round(video.videoHeight * scale);
+            if (canvas.width !== width) canvas.width = width;
+            if (canvas.height !== height) canvas.height = height;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             try {
                 if (confirm(decode(canvas))) return;
@@ -151,7 +154,10 @@
             await video.play();
             if (attempt !== generation) return;
             if (remember) rememberActivation();
-            canvas.hidden = false;
+            // Let the browser render the live stream at its own frame rate.
+            // The hidden canvas is only used for barcode decoding.
+            canvas.hidden = true;
+            video.hidden = false;
             showGuide();
             message('Point the camera at the cassette barcode or the film roll…');
             frame = requestAnimationFrame(scanFrame);
