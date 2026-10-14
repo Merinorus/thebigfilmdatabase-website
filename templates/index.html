@@ -100,50 +100,65 @@
             <br>
         </p>
     </article>
-    <article class="filmblock">
-        <h3>
-            Search with your camera
-            <p id="camera-activate">
-                <canvas style="display:none" id="barcodescancanvas" width="300" height="225"></canvas>
-                <img width="300"
-                     height="225"
-                     id="barcodescanenableimg"
-                     src="{{ url_for('static', path='images/enable_camera.png') }}"
-                     alt="Activate Camera" />
-            </p>
-        </h3>
-        <form action='{{ url_for("search") }}'
-              method="get"
-              name="search-film"
-              id="search-film">
-        </form>
-        <p>
-            <noscript>
-                <div style="color: red; font-size: 16px;">
-                    <p>This feature needs JavaScript to be enabled.</p>
+    <article class="photo-search" aria-labelledby="photo-search-title">
+        <h3 id="photo-search-title">Search by camera or photo</h3>
+        <div class="photo-search-layout">
+            <div class="photo-scanner" data-search-url="{{ url_for("search") }}">
+                <div class="scanner-preview">
+                    <canvas id="barcodescancanvas"
+                            width="640"
+                            height="480"
+                            hidden
+                            aria-label="Camera preview or selected photo"></canvas>
+                    <div id="camera-guide" data-subject="cassette" aria-hidden="true" hidden>
+                        <div class="camera-guide-image guide-cassette"
+                             style="--guide-image: url('{{ url_for('static', path='images/35mm-film-cassette-roll.webp') }}')">
+                            <span class="guide-target"></span>
+                        </div>
+                        <div class="camera-guide-image guide-film"
+                             style="--guide-image: url('{{ url_for('static', path='images/35mm-film-cassette-roll.webp') }}')">
+                            <span class="guide-target"></span>
+                        </div>
+                        <p class="guide-caption guide-cassette">Align the barcode on the cassette</p>
+                        <p class="guide-caption guide-film">Align the barcodes along the film edge</p>
+                    </div>
+                    <button type="button" id="camera-start" disabled>
+                        <img class="camera-activation-image"
+                             src="{{ url_for('static', path='images/enable_camera.png') }}"
+                             width="300"
+                             height="225"
+                             alt="">
+                        <span>Click to activate camera</span>
+                    </button>
                 </div>
-            </noscript>
-            <br>
-            Scan the barcode directly on the cassette or on the 35mm film.
-            <br />
-            On smartphones, best results are obtained with the main back camera. Avoid wide-angle lenses.
-            <br>
-            Camera:
-            <select id="cameraSelector"></select>
-            <select style="display:none" id="dxformat">
-                <option value="DXFilmEdge,ITF">DXFilmEdge,ITF</option>
-            </select>
-            <select style="display:none" id="mode">
-                <option value="true" selected=""></option>
-            </select>
-            <div id="result" style="display:none"></div>
-            <script src="{{ url_for('static', path='scripts/zxing_reader.js') }}?ver=1"
-                    defer></script>
-            <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=11"
-                    defer></script>
-            <br>
-            <br>
-        </p>
+                <p id="scanner-status" role="status" aria-live="polite">Loading barcode reader…</p>
+                <div id="camera-picker" hidden>
+                    <label for="cameraSelector">Camera</label>
+                    <select id="cameraSelector"></select>
+                </div>
+                <div class="scanner-actions">
+                    <button type="button" id="image-choose" disabled>
+                        <svg aria-hidden="true"
+                             viewBox="0 0 24 24"
+                             width="20"
+                             height="20"
+                             fill="currentColor">
+                            <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2ZM5 19V5h14v14H5Zm1-2h12l-4-5-3 4-2-3-3 4Zm2-7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                        </svg>
+                        Choose a photo
+                    </button>
+                    <input type="file" id="barcode-image" accept="image/*" hidden>
+                    <button type="button" id="camera-stop" hidden>Stop camera</button>
+                </div>
+                <noscript>
+                    <p>This feature needs JavaScript to be enabled.</p>
+                </noscript>
+            </div>
+        </div>
+        <script src="{{ url_for('static', path='scripts/zxing_reader.js') }}?ver=1"
+                defer></script>
+        <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=15"
+                defer></script>
     </article>
 {% endblock content %}
 {% block footer %}

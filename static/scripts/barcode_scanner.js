@@ -1,201 +1,262 @@
-var zxing = ZXing().then(function (instance) {
-    zxing = instance; // this line is supposedly not required but with current emsdk it is :-/
-});
+(() => {
+    const scanner = document.querySelector('.photo-scanner');
+    const canvas = document.getElementById('barcodescancanvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const start = document.getElementById('camera-start');
+    const stop = document.getElementById('camera-stop');
+    const choose = document.getElementById('image-choose');
+    const input = document.getElementById('barcode-image');
+    const picker = document.getElementById('camera-picker');
+    const selector = document.getElementById('cameraSelector');
+    const status = document.getElementById('scanner-status');
+    const guide = document.getElementById('camera-guide');
+    let guideTimer;
+    const video = document.createElement('video');
+    video.muted = true;
+    video.playsInline = true;
+    let reader;
+    let stream;
+    let generation = 0;
+    let frame;
+    let lastScan = 0;
+    let detected = false;
 
-const cameraSelector = document.getElementById("cameraSelector");
-const format = document.getElementById("dxformat");
-const tryHarder = 'true'; // tryHarder in wasm: tryHarder + tryRotate + tryInvert
-const canvas = document.getElementById("barcodescancanvas");
-const enableimg = document.getElementById("barcodescanenableimg");
-const resultElement = document.getElementById("result");
-let videostreamstarted = false;
-let currentStream = null;
-let scanningEnabled = true;
-
-const ctx = canvas.getContext("2d", { willReadFrequently: true });
-const video = document.createElement("video");
-video.setAttribute("id", "video");
-video.setAttribute("width", canvas.width);
-video.setAttribute("height", canvas.height);
-video.setAttribute("autoplay", "");
-canvas.appendChild(video);
-
-function readBarcodeFromCanvas(canvas, format, tryHarder) {
-    var imgWidth = canvas.width;
-    var imgHeight = canvas.height;
-    var imageData = canvas.getContext('2d').getImageData(0, 0, imgWidth, imgHeight);
-    var sourceBuffer = imageData.data;
-
-    if (zxing != null) {
-        var buffer = zxing._malloc(sourceBuffer.byteLength);
-        zxing.HEAPU8.set(sourceBuffer, buffer);
-        var result = zxing.readBarcodeFromPixmap(buffer, imgWidth, imgHeight, tryHarder, format);
-        zxing._free(buffer);
-        return result;
-    } else {
-        return { error: "ZXing not yet initialized" };
-    }
-}
-
-function drawResult(code) {
-    with (code.position) {
-        ctx.font = "bold 28px 'Open Sans', sans-serif";
-        ctx.strokeStyle = "black";
-        ctx.lineWidth = 4;
-        // Avoid the text beoing out of the canvas (300 x 225)
-        barcodeX = (topLeft.x + topRight.x + bottomLeft.x + bottomRight.x) / 4;
-        barcodeY = (topLeft.y + topRight.y + bottomLeft.y + bottomRight.y) / 4;
-        x = Math.min(215, Math.max(85, barcodeX));
-        y = Math.min(200, Math.max(25, barcodeY));
-        text = code.text
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.strokeText(text, x, y);
-        ctx.fillStyle = "#fefefe"
-        ctx.fillText(text, x, y)
-    }
-}
-
-function escapeTags(htmlStr) {
-    return htmlStr.replace(/&/g, "&amp;").replace(/</g , "&lt;").replace( />/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
-
-function temporaryDisableScanning(){
-    scanningEnabled = false;
-    setTimeout(function () {
-        scanningEnabled = true;
-    }, 1000);
-}
-
-const processFrame = function () {
-    if (scanningEnabled === true){
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const code = readBarcodeFromCanvas(canvas, format.value, tryHarder === 'true');
-    if (code.format) {
-            temporaryDisableScanning()
-            resultElement.innerText = code.format + ": " + escapeTags(code.text);
-            drawResult(code)
-            setTimeout(function () {
-            if (code.format === "ITF") {
-                window.location.href = "search?dx_full=" + encodeURIComponent(code.text);
-            } else if (code.format === "DX Film Edge") {
-                window.location.href = "search?dx_number=" + encodeURIComponent(code.text);
-            }
-            }, 500);
-    }
-}
-    requestAnimationFrame(processFrame);
-};
-
-const updateVideoStream = function (deviceId) {
-    console.log("call updateVideoStream: " + deviceId)
-    console.log("currentStream: " + currentStream);
-
-
-    canvas.style.display = "";
-    enableimg.style.display = "none";
-
-    if (currentStream) {
-        // Stop all tracks when switching or stopping the camera
-        currentStream.getTracks().forEach(track => track.stop());
+    function switchGuide() {
+        guide.dataset.subject = guide.dataset.subject === 'cassette' ? 'film' : 'cassette';
     }
 
-    navigator.mediaDevices
-        .getUserMedia({ video: {facingMode: "environment", "deviceId": deviceId }, audio: false })
-        .then(function (stream) {
-            currentStream = stream;
-            video.srcObject = stream;
-            video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
-            video.play();
-            processFrame();
-            console.log("currentStream: " + currentStream);
-        })
-        .catch(function (error) {
-            console.error("Error accessing camera:", error);
-        });
-};
+    function showGuide() {
+        clearInterval(guideTimer);
+        if (!stream) {
+            guide.hidden = true;
+            return;
+        }
+        guide.hidden = false;
+        guideTimer = setInterval(switchGuide, 5000);
+    }
 
-function onCameraActivated(){
-    sessionStorage.setItem('lastCameraActivated', Date.now().toString());
-}
+    function message(text, state = '') {
+        status.textContent = text;
+        status.dataset.state = state;
+    }
 
-function isCameraRecentlyActivated() {
-    const last = sessionStorage.getItem('lastCameraActivated');
-    if (!last) return false;
+    function preferredCamera() {
+        try { return localStorage.getItem('preferredCameraId'); }
+        catch { return null; }
+    }
 
-    const lastTimestamp = parseInt(last, 10);
-    const now = Date.now();
-    const timeout = 5 * 60 * 1000; // 5 minutes
+    function recentlyActivated() {
+        try {
+            const last = Number(sessionStorage.getItem('lastCameraActivated'));
+            const age = Date.now() - last;
+            return last > 0 && age >= 0 && age < 5 * 60 * 1000;
+        } catch { return false; }
+    }
 
-    if (now - lastTimestamp < timeout) {
+    function rememberActivation() {
+        try { sessionStorage.setItem('lastCameraActivated', String(Date.now())); }
+        catch { /* Camera remains usable when storage is unavailable. */ }
+    }
+
+    function stopCamera() {
+        generation++;
+        clearInterval(guideTimer);
+        guide.hidden = true;
+        cancelAnimationFrame(frame);
+        if (stream) stream.getTracks().forEach(track => track.stop());
+        stream = null;
+        video.srcObject = null;
+        stop.hidden = true;
+        picker.hidden = true;
+        start.disabled = !reader || detected;
+        start.hidden = detected;
+    }
+
+    function decode(source) {
+        const pixels = source.getContext('2d').getImageData(0, 0, source.width, source.height).data;
+        const buffer = reader._malloc(pixels.byteLength);
+        try {
+            reader.HEAPU8.set(pixels, buffer);
+            return reader.readBarcodeFromPixmap(buffer, source.width, source.height, true, 'DXFilmEdge,ITF');
+        } finally {
+            reader._free(buffer);
+        }
+    }
+
+    function confirm(code) {
+        const text = code.text?.trim();
+        const parameter = code.format === 'ITF' && /^\d{6}$/.test(text) ? 'dx_full'
+            : code.format === 'DX Film Edge' && /^\d+-\d+(?:\/\d+[A-Za-z]?)?$/.test(text) ? 'dx_number' : null;
+        if (!parameter || detected) return false;
+        detected = true;
+        stopCamera();
+        start.disabled = true;
+        choose.disabled = true;
+        message(`✓ Barcode found: ${text}. Searching…`, 'success');
+        const url = new URL(scanner.dataset.searchUrl, window.location.href);
+        url.searchParams.set(parameter, text);
+        setTimeout(() => { window.location.href = url.href; }, 500);
         return true;
-    } else {
-        return false;
     }
-}
 
-function activateCamera(deviceId = null){
-    onCameraActivated();
-    if (!videostreamstarted){
-        videostreamstarted = true;
-        if (deviceId === null){
-            updateVideoStream(cameraSelector.value);
-        }
-        else{
-            updateVideoStream(deviceId);
-        }
-    }
-}
-
-enableimg.addEventListener("click", function () {
-    activateCamera();
-});
-
-cameraSelector.addEventListener("change", function () {
-    onCameraActivated();
-    const selectedDeviceId = this.value;
-    localStorage.setItem("preferredCameraId", selectedDeviceId);
-    if (!videostreamstarted){
-        videostreamstarted = true;
-    }
-    updateVideoStream(this.value);
-});
-
-if (!navigator.mediaDevices?.enumerateDevices) {
-    console.log("enumerateDevices() not supported.");
-  } else {
-    // List cameras and microphones.
-    const savedDeviceId = localStorage.getItem("preferredCameraId");
-
-    navigator.mediaDevices
-      .enumerateDevices()
-      .then((devices) => {
-        let audioSource = null;
-        let videoSource = null;
-  
-        devices.forEach((device) => {
-          if (device.kind === "audioinput") {
-            audioSource = device.deviceId;
-          } else if (device.kind === "videoinput") {
-            videoSource = device.deviceId;
-            const option = document.createElement("option");
-            option.value = device.deviceId;
-            option.text = device.label;
-            cameraSelector.add(option, null);
-            if (option.value === savedDeviceId){
-                option.selected = true;
+    function scanFrame(now) {
+        if (!stream || detected) return;
+        if (video.readyState >= 2 && now - lastScan >= 150) {
+            lastScan = now;
+            // Preserve the camera aspect ratio and enough detail for film-edge codes.
+            const scale = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight));
+            canvas.width = Math.round(video.videoWidth * scale);
+            canvas.height = Math.round(video.videoHeight * scale);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            try {
+                if (confirm(decode(canvas))) return;
+            } catch {
+                stopCamera();
+                message('Could not read the camera image. Try choosing a photo or restarting the camera.', 'error');
+                return;
             }
-            console.log(device)
-          }
-        });
-      })
-      .catch((err) => {
-        console.error(`${err.name}: ${err.message}`);
-      });
-  }
+        }
+        frame = requestAnimationFrame(scanFrame);
+    }
 
-if (isCameraRecentlyActivated()){
-    const savedDeviceId = localStorage.getItem("preferredCameraId");
-    activateCamera(savedDeviceId);
-}
+    async function startCamera(deviceId, remember = false) {
+        stopCamera();
+        const attempt = generation;
+        if (!navigator.mediaDevices?.getUserMedia) {
+            showGuide();
+            message('Camera unavailable in this browser. Choose a photo instead.', 'error');
+            return;
+        }
+        start.disabled = true;
+        start.hidden = true;
+        stop.hidden = false;
+        message('Starting camera…');
+        try {
+            const constraints = { width: { ideal: 1280 }, facingMode: { ideal: 'environment' } };
+            if (deviceId) constraints.deviceId = { exact: deviceId };
+            let nextStream;
+            try {
+                nextStream = await navigator.mediaDevices.getUserMedia({ video: constraints, audio: false });
+            } catch (error) {
+                if (error.name !== 'OverconstrainedError' || !deviceId || attempt !== generation) throw error;
+                delete constraints.deviceId;
+                nextStream = await navigator.mediaDevices.getUserMedia({ video: constraints, audio: false });
+            }
+            if (attempt !== generation) {
+                nextStream.getTracks().forEach(track => track.stop());
+                return;
+            }
+            stream = nextStream;
+            video.srcObject = stream;
+            await video.play();
+            if (attempt !== generation) return;
+            if (remember) rememberActivation();
+            canvas.hidden = false;
+            showGuide();
+            message('Point the camera at the cassette barcode or the film roll…');
+            frame = requestAnimationFrame(scanFrame);
+            // Device labels become available after camera permission is granted.
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                if (attempt !== generation) return;
+                selector.replaceChildren();
+                const cameras = devices.filter(device => device.kind === 'videoinput');
+                cameras.forEach((device, i) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.textContent = device.label || `Camera ${i + 1}`;
+                    selector.appendChild(option);
+                });
+                selector.value = stream.getVideoTracks()[0].getSettings().deviceId || '';
+                picker.hidden = cameras.length < 2;
+            } catch { /* Scanning remains available without a device picker. */ }
+        } catch (error) {
+            if (attempt !== generation) return;
+            stopCamera();
+            canvas.hidden = true;
+            showGuide();
+            message(error.name === 'NotAllowedError'
+                ? 'Camera access was denied. Allow access and try again, or choose a photo.'
+                : 'Could not start the camera. Choose a photo or try again.', 'error');
+        }
+    }
+
+    start.addEventListener('click', () => startCamera(preferredCamera(), true));
+    stop.addEventListener('click', () => {
+        try { sessionStorage.removeItem('lastCameraActivated'); } catch { /* Optional storage. */ }
+        stopCamera();
+        canvas.hidden = true;
+        showGuide();
+        message('Camera stopped. Start it again or choose a photo.');
+    });
+    selector.addEventListener('change', () => {
+        try { localStorage.setItem('preferredCameraId', selector.value); } catch { /* Optional preference. */ }
+        startCamera(selector.value, true);
+    });
+    choose.addEventListener('click', () => input.click());
+    input.addEventListener('change', async () => {
+        const file = input.files?.[0];
+        input.value = ''; // Allow retrying the same photo.
+        if (!file || detected) return;
+        stopCamera();
+        const attempt = generation;
+        choose.disabled = true;
+        start.disabled = true;
+        canvas.hidden = true;
+        message('Reading your photo…');
+        const url = URL.createObjectURL(file);
+        try {
+            const image = new Image();
+            image.src = url;
+            await image.decode();
+            if (attempt !== generation) return;
+            const scale = Math.min(1, 3000 / Math.max(image.naturalWidth, image.naturalHeight));
+            canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+            canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            canvas.hidden = false;
+            if (!confirm(decode(canvas))) {
+                message('No DX barcode found. Try a sharper photo, closer to the barcode and without reflections.', 'error');
+            }
+        } catch {
+            if (attempt === generation) message('Could not read this photo. Try a JPEG, PNG or WebP image.', 'error');
+        } finally {
+            URL.revokeObjectURL(url);
+            if (!detected) {
+                choose.disabled = false;
+                start.disabled = !reader;
+            }
+        }
+    });
+    window.addEventListener('pagehide', stopCamera);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && stream && !detected) {
+            stopCamera();
+            canvas.hidden = true;
+            showGuide();
+            message('Camera paused. Start it again to continue scanning.');
+        }
+    });
+
+    function restoreScanner() {
+        detected = false;
+        start.disabled = false;
+        start.hidden = false;
+        choose.disabled = false;
+        canvas.hidden = true;
+        showGuide();
+        message('Scan the cassette barcode or the film edge. Keep it sharp and well lit.');
+        if (recentlyActivated()) startCamera(preferredCamera());
+    }
+
+    window.addEventListener('pageshow', event => {
+        if (event.persisted && reader) restoreScanner();
+    });
+
+    Promise.resolve().then(() => ZXing()).then(instance => {
+        reader = instance;
+        restoreScanner();
+    }).catch(() => {
+        message('The barcode reader could not load. Reload the page to try again.', 'error');
+    });
+})();
