@@ -107,17 +107,26 @@
                             height="480"
                             hidden
                             aria-label="Selected photo"></canvas>
-                    <div id="camera-guide" data-subject="cassette" aria-hidden="true" hidden>
+                    <div id="camera-guide" data-subject="none" aria-hidden="true" hidden>
                         <div class="camera-guide-image guide-cassette"
                              style="--guide-image: url('{{ url_for('static', path='images/35mm-film-cassette-roll.webp') }}')">
-                            <span class="guide-target"></span>
                         </div>
                         <div class="camera-guide-image guide-film"
                              style="--guide-image: url('{{ url_for('static', path='images/35mm-film-cassette-roll.webp') }}')">
-                            <span class="guide-target"></span>
                         </div>
-                        <p class="guide-caption guide-cassette">Align the barcode on the cassette</p>
-                        <p class="guide-caption guide-film">Align the barcodes along the film edge</p>
+                        <p class="guide-caption">Keep the whole barcode in focus and well lit</p>
+                    </div>
+                    <div id="scanner-success" hidden aria-hidden="true">
+                        <div class="scanner-success-icon">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="3"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M20 6 9 17l-5-5" />
+                            </svg>
+                        </div>
                     </div>
                     <button type="button" id="camera-start" disabled>
                         <img class="camera-activation-image"
@@ -154,7 +163,7 @@
         </div>
         <script src="{{ url_for('static', path='scripts/zxing_reader.js') }}?ver=1"
                 defer></script>
-        <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=16"
+        <script src="{{ url_for('static', path='scripts/barcode_scanner.js') }}?ver=20"
                 defer></script>
     </article>
     {% if alternative_interface_available %}

@@ -10,6 +10,7 @@
     const selector = document.getElementById('cameraSelector');
     const status = document.getElementById('scanner-status');
     const guide = document.getElementById('camera-guide');
+    const success = document.getElementById('scanner-success');
     let guideTimer;
     const video = document.getElementById('camera-video');
     video.muted = true;
@@ -22,17 +23,20 @@
     let detected = false;
 
     function switchGuide() {
-        guide.dataset.subject = guide.dataset.subject === 'cassette' ? 'film' : 'cassette';
+        const next = { cassette: 'film', film: 'none', none: 'cassette' };
+        guide.dataset.subject = next[guide.dataset.subject] || 'cassette';
     }
 
     function showGuide() {
         clearInterval(guideTimer);
+        guide.dataset.state = '';
         if (!stream) {
             guide.hidden = true;
             return;
         }
         guide.hidden = false;
-        guideTimer = setInterval(switchGuide, 5000);
+        guide.dataset.subject = 'none';
+        guideTimer = setInterval(switchGuide, 8000);
     }
 
     function message(text, state = '') {
@@ -58,10 +62,15 @@
         catch { /* Camera remains usable when storage is unavailable. */ }
     }
 
-    function stopCamera() {
+    function stopCamera(fadeGuide = false) {
         generation++;
         clearInterval(guideTimer);
-        guide.hidden = true;
+        if (fadeGuide) {
+            guide.dataset.state = 'fading';
+        } else {
+            guide.hidden = true;
+            guide.dataset.state = '';
+        }
         cancelAnimationFrame(frame);
         if (stream) stream.getTracks().forEach(track => track.stop());
         stream = null;
@@ -90,13 +99,16 @@
             : code.format === 'DX Film Edge' && /^\d+-\d+(?:\/\d+[A-Za-z]?)?$/.test(text) ? 'dx_number' : null;
         if (!parameter || detected) return false;
         detected = true;
-        stopCamera();
+        stopCamera(true);
+        canvas.hidden = false;
+        success.hidden = false;
+        navigator.vibrate?.(120);
         start.disabled = true;
         choose.disabled = true;
         message(`✓ Barcode found: ${text}. Searching…`, 'success');
         const url = new URL(scanner.dataset.searchUrl, window.location.href);
         url.searchParams.set(parameter, text);
-        setTimeout(() => { window.location.href = url.href; }, 500);
+        setTimeout(() => { window.location.href = url.href; }, 550);
         return true;
     }
 
@@ -234,7 +246,7 @@
             }
         }
     });
-    window.addEventListener('pagehide', stopCamera);
+    window.addEventListener('pagehide', () => stopCamera());
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && stream && !detected) {
             stopCamera();
@@ -246,6 +258,7 @@
 
     function restoreScanner() {
         detected = false;
+        success.hidden = true;
         start.disabled = false;
         start.hidden = false;
         choose.disabled = false;
